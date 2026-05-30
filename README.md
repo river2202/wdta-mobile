@@ -10,6 +10,7 @@ Implemented MVP:
 
 - Next.js App Router with TypeScript.
 - Mobile-first results page with Section 1 / Section 2 tabs.
+- Original WDTA button that deep-links to the selected Saturday AM section on the source site.
 - Manual refresh button, enabled only when the visible cache is more than one hour old.
 - WDTA fetcher and Cheerio HTML parser.
 - JSON cache at `data/wdta-results.json`.

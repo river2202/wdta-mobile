@@ -33,6 +33,8 @@
 - Playwright layout checks at 390px and 1024px found no horizontal overflow.
 - Manual refresh button displays remaining wait time and is disabled while the cache is less than one hour old.
 - `GET /api/results/refresh` returns `429 Too Many Requests` with `status: "too-fresh"` while the cache is younger than one hour.
+- The source site supports deep-linking selected result pages via GET, e.g. `results.php?which=1&style=&daytime=AA&section=AA016`.
+- The Original WDTA button updates its link from `AA016` to `AA017` when the user switches sections.
 
 ## Technical Decisions
 
@@ -46,6 +48,7 @@
 | Do not parse match popup details in v1 | Summary results are the immediate mobile pain point. |
 | Use a source-only TypeScript config for `npm run typecheck` | Next generated route validation is covered by `next build`; source type checking should not depend on stale `.next` artifacts. |
 | Keep manual refresh non-durable for now | Avoids adding GitHub API tokens or Vercel storage; durable refresh remains the daily GitHub Action. |
+| Use same-tab external navigation for Original WDTA | User asked for a jump to the original data site; the app URL is easy to return to through browser history. |
 
 ## Issues Encountered
 

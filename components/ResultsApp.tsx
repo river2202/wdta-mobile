@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { CachedResults, MatchResult, RoundResult, SectionResults } from "@/lib/wdta/types";
 
 const MIN_REFRESH_AGE_MS = 60 * 60 * 1000;
+const ORIGINAL_RESULTS_URL = "https://www.trols.org.au/wdta/results.php";
 
 type RefreshResponse = {
   status: "refreshed" | "too-fresh" | "error";
@@ -39,6 +40,9 @@ export function ResultsApp({
     results.sections[0];
 
   const refreshState = useMemo(() => getRefreshState(results.generatedAt, now), [results, now]);
+  const originalResultsUrl = selectedSection
+    ? buildOriginalResultsUrl(selectedSection.sectionCode)
+    : ORIGINAL_RESULTS_URL;
 
   function selectSection(sectionCode: string) {
     setSelectedSectionCode(sectionCode);
@@ -95,18 +99,23 @@ export function ResultsApp({
             Results loaded {results.source.resultsLoadedAt || "not yet"} · Cache{" "}
             {formatDateTime(results.generatedAt)}
           </p>
-          <button
-            className="refresh-button"
-            type="button"
-            disabled={!refreshState.canRefresh || isRefreshing}
-            onClick={handleRefresh}
-          >
-            {isRefreshing
-              ? "Refreshing"
-              : refreshState.canRefresh
-                ? "Refresh"
-                : `Refresh in ${formatDuration(refreshState.remainingMs)}`}
-          </button>
+          <div className="header-button-row">
+            <a className="original-link" href={originalResultsUrl}>
+              Original WDTA
+            </a>
+            <button
+              className="refresh-button"
+              type="button"
+              disabled={!refreshState.canRefresh || isRefreshing}
+              onClick={handleRefresh}
+            >
+              {isRefreshing
+                ? "Refreshing"
+                : refreshState.canRefresh
+                  ? "Refresh"
+                  : `Refresh in ${formatDuration(refreshState.remainingMs)}`}
+            </button>
+          </div>
         </div>
         {refreshMessage ? <p className="refresh-status">{refreshMessage}</p> : null}
       </header>
@@ -262,6 +271,15 @@ function getRefreshState(generatedAt: string, now: number) {
     canRefresh: remainingMs === 0,
     remainingMs,
   };
+}
+
+function buildOriginalResultsUrl(sectionCode: string) {
+  const url = new URL(ORIGINAL_RESULTS_URL);
+  url.searchParams.set("which", "1");
+  url.searchParams.set("style", "");
+  url.searchParams.set("daytime", "AA");
+  url.searchParams.set("section", sectionCode);
+  return url.toString();
 }
 
 function formatDateTime(value: string) {

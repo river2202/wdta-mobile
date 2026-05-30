@@ -139,6 +139,24 @@
   - `findings.md`
   - `progress.md`
 
+### Phase 8: Original Source Link
+
+- **Status:** complete
+- Actions taken:
+  - Confirmed WDTA results pages can be selected directly with GET parameters.
+  - Added an `Original WDTA` button to the header action area.
+  - Wired the button to the currently selected section code.
+  - Verified Section 1 links to `section=AA016`.
+  - Verified switching to Section 2 changes the link to `section=AA017`.
+  - Captured a mobile screenshot with the source button visible.
+- Files created/modified:
+  - `components/ResultsApp.tsx`
+  - `app/globals.css`
+  - `README.md`
+  - `task_plan.md`
+  - `findings.md`
+  - `progress.md`
+
 ## Test Results
 
 | Test | Input | Expected | Actual | Status |
@@ -154,6 +172,8 @@
 | Section 2 route check | Playwright `/?section=AA017` at 390px | Section 2 tab active with cards | 16 cards, no overflow | Pass |
 | Manual refresh disabled state | Playwright 390x844 with cache under 1 hour | Button disabled and shows remaining wait time | Disabled with remaining wait time, no overflow | Pass |
 | Manual refresh server guard | `curl /api/results/refresh` with cache under 1 hour | Server refuses refresh | `429 Too Many Requests`, `status: "too-fresh"` | Pass |
+| Original source link Section 1 | Playwright at `/?section=AA016` | Link targets source Section 1 | `section=AA016` | Pass |
+| Original source link Section 2 | Click Section 2 tab | Link targets source Section 2 | `section=AA017` | Pass |
 
 ## Error Log
 
@@ -172,8 +192,8 @@
 
 | Question | Answer |
 |----------|--------|
-| Where am I? | MVP implementation plus manual refresh control are complete. |
-| Where am I going? | Commit and push the manual refresh update so Vercel can redeploy. |
+| Where am I? | MVP implementation plus manual refresh and original source link are complete. |
+| Where am I going? | Commit and push the source-link update so Vercel can redeploy. |
 | What's the goal? | Build and document the WDTA mobile results app with daily caching for Girls S/D Rubbers Sections 1 and 2. |
 | What have I learned? | See `findings.md`. |
 | What have I done? | Created README, planning files, Next.js app, parser/cache workflow, mobile UI, and verification artifacts. |

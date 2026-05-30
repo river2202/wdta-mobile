@@ -100,8 +100,17 @@ h1 {
   gap: 10px;
 }
 
-.refresh-button {
+.header-button-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.refresh-button,
+.original-link {
   min-height: 40px;
+  display: inline-grid;
+  place-items: center;
   border: 1px solid var(--accent);
   border-radius: 8px;
   background: var(--accent);
@@ -111,6 +120,12 @@ h1 {
   font-weight: 850;
   padding: 8px 12px;
   white-space: nowrap;
+}
+
+.original-link {
+  border-color: var(--line);
+  background: var(--surface);
+  color: var(--accent-strong);
 }
 
 .refresh-button:disabled {
@@ -353,6 +368,15 @@ h1 {
   }
 
   .refresh-button {
+    width: 100%;
+  }
+
+  .header-button-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .original-link {
     width: 100%;
   }
 

@@ -62,6 +62,13 @@ Complete
 - [x] Verify the under-one-hour disabled state.
 - **Status:** complete
 
+### Phase 8: Original Source Link
+
+- [x] Add an Original WDTA button.
+- [x] Deep-link to Saturday AM and the currently selected Section 1/2.
+- [x] Verify the link updates when switching sections.
+- **Status:** complete
+
 ## Key Questions
 
 1. Should daily refresh run in GitHub Actions or Vercel Cron?
@@ -82,6 +89,7 @@ Complete
 | Treat Vercel Cron as optional later | It is viable, but needs a durable cache if refresh work happens at runtime. |
 | Use source-only `tsconfig.typecheck.json` for manual type checking | `next build` validates generated Next route types; direct `tsc` should focus on project source. |
 | Manual refresh updates the current page but does not commit JSON | Keeps the MVP free of GitHub tokens or runtime storage; daily GitHub Actions remains the durable cache update path. |
+| Original source button uses GET parameters | The source site accepts `which=1&style=&daytime=AA&section=<code>`, so the button can link directly to the selected section. |
 
 ## Errors Encountered
 
