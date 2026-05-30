@@ -14,6 +14,7 @@ Implemented MVP:
 - Cached match details from WDTA home-team popups, shown in collapsible panels.
 - Original WDTA button that deep-links to the selected Saturday AM section on the source site.
 - Original ladder links for the selected section and each listed team.
+- Last selected section is remembered for the next visit.
 - Manual refresh button, enabled only when the visible cache is more than one hour old.
 - WDTA fetcher and Cheerio HTML parser.
 - JSON cache at `data/wdta-results.json`.

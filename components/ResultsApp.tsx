@@ -17,6 +17,7 @@ import type {
 const MIN_REFRESH_AGE_MS = 60 * 60 * 1000;
 const ORIGINAL_RESULTS_URL = "https://www.trols.org.au/wdta/results.php";
 const ORIGINAL_LADDERS_URL = "https://www.trols.org.au/wdta/ladders.php";
+const SELECTED_SECTION_STORAGE_KEY = "wdta-mobile-section";
 
 type RefreshResponse = {
   status: "refreshed" | "too-fresh" | "error";
@@ -32,10 +33,9 @@ export function ResultsApp({
   initialResults: CachedResults;
   initialSectionCode?: string;
 }) {
+  const initialSelectedSectionCode = getInitialSectionCode(initialResults, initialSectionCode);
   const [results, setResults] = useState(initialResults);
-  const [selectedSectionCode, setSelectedSectionCode] = useState(
-    initialSectionCode || initialResults.sections[0]?.sectionCode,
-  );
+  const [selectedSectionCode, setSelectedSectionCode] = useState(initialSelectedSectionCode);
   const [now, setNow] = useState(() => Date.now());
   const [refreshMessage, setRefreshMessage] = useState("");
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -44,6 +44,15 @@ export function ResultsApp({
     const interval = window.setInterval(() => setNow(Date.now()), 30_000);
     return () => window.clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+    if (
+      initialSectionCode &&
+      results.sections.some((section) => section.sectionCode === initialSectionCode)
+    ) {
+      rememberSelectedSection(initialSectionCode);
+    }
+  }, [initialSectionCode, results.sections]);
 
   const selectedSection =
     results.sections.find((section) => section.sectionCode === selectedSectionCode) ??
@@ -56,6 +65,7 @@ export function ResultsApp({
 
   function selectSection(sectionCode: string) {
     setSelectedSectionCode(sectionCode);
+    rememberSelectedSection(sectionCode);
     window.history.replaceState(null, "", `/?section=${sectionCode}`);
   }
 
@@ -451,6 +461,26 @@ function buildOriginalClubLadderUrl(team: string) {
   url.searchParams.set("daytime", "AA");
   url.searchParams.set("club", team);
   return url.toString();
+}
+
+function rememberSelectedSection(sectionCode: string) {
+  try {
+    window.localStorage?.setItem(SELECTED_SECTION_STORAGE_KEY, sectionCode);
+  } catch {
+    // Cookie persistence below is enough for the next server-rendered visit.
+  }
+
+  document.cookie = `${SELECTED_SECTION_STORAGE_KEY}=${encodeURIComponent(
+    sectionCode,
+  )}; Max-Age=31536000; Path=/; SameSite=Lax`;
+}
+
+function getInitialSectionCode(results: CachedResults, sectionCode?: string) {
+  if (sectionCode && results.sections.some((section) => section.sectionCode === sectionCode)) {
+    return sectionCode;
+  }
+
+  return results.sections[0]?.sectionCode;
 }
 
 function formatDateTime(value: string) {

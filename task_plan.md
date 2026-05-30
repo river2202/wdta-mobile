@@ -88,6 +88,14 @@ Complete
 - [x] Verify mobile layout and deep-link parameters.
 - **Status:** complete
 
+### Phase 11: Remember Selected Section
+
+- [x] Persist the user's selected section.
+- [x] Restore the remembered section when opening the app without a section query.
+- [x] Keep explicit `?section=` URLs authoritative.
+- [x] Verify remembered section behavior in the browser.
+- **Status:** complete
+
 ## Key Questions
 
 1. Should daily refresh run in GitHub Actions or Vercel Cron?
@@ -112,6 +120,7 @@ Complete
 | Cache played match popup details | The source detail pages are stable enough to parse and the once-daily fetch keeps request volume low. |
 | Default-open latest round details | Shows the most recent useful detail immediately while keeping older rounds collapsible. |
 | Link ladder buttons to TROLS directly | The Waverley ladder page embeds TROLS; direct TROLS URLs can select the section or club, which gives useful deep links. |
+| Remember selected section with a cookie | Lets the server render the preferred section on the next visit, avoiding a client-side flash. |
 
 ## Errors Encountered
 

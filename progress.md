@@ -208,6 +208,24 @@
   - `progress.md`
   - `artifacts/mobile-ladder.png`
 
+### Phase 11: Remember Selected Section
+
+- **Status:** complete
+- Actions taken:
+  - Read the current app entry and result component.
+  - Added a section preference cookie read in `app/page.tsx`.
+  - Persisted section selection from `components/ResultsApp.tsx` when users switch tabs.
+  - Kept explicit `?section=` URLs authoritative and saved valid explicit selections.
+  - Added a guarded localStorage write as a best-effort browser-local backup.
+  - Verified reopening `/` after selecting Section 2 restores Section 2.
+- Files created/modified:
+  - `app/page.tsx`
+  - `components/ResultsApp.tsx`
+  - `README.md`
+  - `task_plan.md`
+  - `findings.md`
+  - `progress.md`
+
 ## Test Results
 
 | Test | Input | Expected | Actual | Status |
@@ -234,6 +252,8 @@
 | Ladder cache Section 2 | `npm run refresh:data` | Section 2 has current ladder entries | 7 entries; first team `Glenvale` | Pass |
 | Ladder UI Section 1 | In-app browser 390x844 | Ladder is first section content, no overflow, links target source | `AA016` section link, `club=N%27hill+P%27wood`, no overflow | Pass |
 | Ladder UI Section 2 | In-app browser 390x844 | Ladder is first section content, no overflow, links target source | `AA017` section link, `club=Glenvale`, no overflow | Pass |
+| Remember explicit section | In-app browser `/?section=AA016` | Section 1 is active and remembered | Section 1 active; reopening `/` shows Section 1 | Pass |
+| Remember clicked section | In-app browser click Section 2, then open `/` | Section 2 is active without query string | Section 2 active; no console errors; no overflow | Pass |
 
 ## Error Log
 
@@ -248,13 +268,15 @@
 | 2026-05-30 16:39:50 AEST | `next dev` accepted connections but did not return content under local Node 23.11 | 1 | Used production server for verification; build/start works. |
 | 2026-05-30 17:27:49 AEST | Manual refresh could not exercise success path because current cache was still under one hour old | 1 | Verified fetch path separately via `npm run refresh:data` and verified API guard/UI disabled state for the current cache. |
 | 2026-05-30 18:18:00 AEST | Browser verification variable name was already declared in the persistent browser session | 1 | Retried with unique reusable variable names; ladder UI verification passed. |
+| 2026-05-30 18:35:00 AEST | Lint rejected synchronous `setState` inside an effect while restoring localStorage | 1 | Removed effect-based state restoration and used the server-readable cookie as the primary persistence path. |
+| 2026-05-30 18:35:00 AEST | Browser verification sandbox did not expose localStorage for test cleanup | 1 | Made localStorage persistence best-effort and verified behavior through real page navigation and cookie-backed rendering. |
 
 ## 5-Question Reboot Check
 
 | Question | Answer |
 |----------|--------|
-| Where am I? | MVP implementation plus manual refresh, source links, match detail panels, and ladder standings are complete. |
-| Where am I going? | Commit and push the ladder standings update so Vercel can redeploy. |
+| Where am I? | MVP implementation plus manual refresh, source links, match detail panels, ladder standings, and remembered section are complete. |
+| Where am I going? | Commit and push the remembered-section update so Vercel can redeploy. |
 | What's the goal? | Build and document the WDTA mobile results app with daily caching for Girls S/D Rubbers Sections 1 and 2. |
 | What have I learned? | See `findings.md`. |
-| What have I done? | Created README, planning files, Next.js app, parser/cache workflow, mobile UI, ladder standings, and verification artifacts. |
+| What have I done? | Created README, planning files, Next.js app, parser/cache workflow, mobile UI, ladder standings, remembered-section behavior, and verification artifacts. |
