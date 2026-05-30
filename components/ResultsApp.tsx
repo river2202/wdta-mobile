@@ -18,12 +18,18 @@ const MIN_REFRESH_AGE_MS = 60 * 60 * 1000;
 const ORIGINAL_RESULTS_URL = "https://www.trols.org.au/wdta/results.php";
 const ORIGINAL_LADDERS_URL = "https://www.trols.org.au/wdta/ladders.php";
 const SELECTED_SECTION_STORAGE_KEY = "wdta-mobile-section";
+const SEEN_RESULTS_STORAGE_KEY = "wdta-mobile-seen-results";
 
 type RefreshResponse = {
   status: "refreshed" | "too-fresh" | "error";
   results?: CachedResults;
   message?: string;
   retryAt?: string;
+};
+
+type NewResultsNotice = {
+  previousLoadedAt: string;
+  currentLoadedAt: string;
 };
 
 export function ResultsApp({
@@ -39,6 +45,8 @@ export function ResultsApp({
   const [now, setNow] = useState(() => Date.now());
   const [refreshMessage, setRefreshMessage] = useState("");
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [newResultsNotice, setNewResultsNotice] = useState<NewResultsNotice | null>(null);
+  const currentResultsStamp = getResultsUpdateStamp(results);
 
   useEffect(() => {
     const interval = window.setInterval(() => setNow(Date.now()), 30_000);
@@ -53,6 +61,34 @@ export function ResultsApp({
       rememberSelectedSection(initialSectionCode);
     }
   }, [initialSectionCode, results.sections]);
+
+  useEffect(() => {
+    if (!currentResultsStamp) {
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      const lastSeenResultsStamp = readBrowserValue(SEEN_RESULTS_STORAGE_KEY);
+
+      if (!lastSeenResultsStamp) {
+        rememberBrowserValue(SEEN_RESULTS_STORAGE_KEY, currentResultsStamp);
+        setNewResultsNotice(null);
+        return;
+      }
+
+      if (lastSeenResultsStamp !== currentResultsStamp) {
+        setNewResultsNotice({
+          previousLoadedAt: lastSeenResultsStamp,
+          currentLoadedAt: currentResultsStamp,
+        });
+        return;
+      }
+
+      setNewResultsNotice(null);
+    }, 0);
+
+    return () => window.clearTimeout(timer);
+  }, [currentResultsStamp]);
 
   const selectedSection =
     results.sections.find((section) => section.sectionCode === selectedSectionCode) ??
@@ -78,6 +114,14 @@ export function ResultsApp({
     setIsRefreshing(true);
 
     void refreshResults().finally(() => setIsRefreshing(false));
+  }
+
+  function acknowledgeNewResults() {
+    if (currentResultsStamp) {
+      rememberBrowserValue(SEEN_RESULTS_STORAGE_KEY, currentResultsStamp);
+    }
+
+    setNewResultsNotice(null);
   }
 
   async function refreshResults() {
@@ -138,6 +182,20 @@ export function ResultsApp({
           </div>
         </div>
         {refreshMessage ? <p className="refresh-status">{refreshMessage}</p> : null}
+        {newResultsNotice ? (
+          <section className="new-results-banner" aria-label="New results">
+            <div>
+              <p className="new-results-title">New results available</p>
+              <p>
+                Source updated {newResultsNotice.currentLoadedAt}. Last seen{" "}
+                {newResultsNotice.previousLoadedAt}.
+              </p>
+            </div>
+            <button type="button" onClick={acknowledgeNewResults}>
+              Mark as seen
+            </button>
+          </section>
+        ) : null}
       </header>
 
       <nav className="section-tabs" aria-label="Sections">
@@ -464,15 +522,48 @@ function buildOriginalClubLadderUrl(team: string) {
 }
 
 function rememberSelectedSection(sectionCode: string) {
+  rememberBrowserValue(SELECTED_SECTION_STORAGE_KEY, sectionCode);
+}
+
+function rememberBrowserValue(key: string, value: string) {
   try {
-    window.localStorage?.setItem(SELECTED_SECTION_STORAGE_KEY, sectionCode);
+    window.localStorage?.setItem(key, value);
   } catch {
-    // Cookie persistence below is enough for the next server-rendered visit.
+    // Cookie persistence below is enough for the next visit.
   }
 
-  document.cookie = `${SELECTED_SECTION_STORAGE_KEY}=${encodeURIComponent(
-    sectionCode,
-  )}; Max-Age=31536000; Path=/; SameSite=Lax`;
+  document.cookie = `${key}=${encodeURIComponent(value)}; Max-Age=31536000; Path=/; SameSite=Lax`;
+}
+
+function readBrowserValue(key: string) {
+  try {
+    const localValue = window.localStorage?.getItem(key);
+
+    if (localValue) {
+      return localValue;
+    }
+  } catch {
+    // Fall back to the cookie written alongside localStorage.
+  }
+
+  return readCookieValue(key);
+}
+
+function readCookieValue(key: string) {
+  const prefix = `${key}=`;
+  const match = document.cookie.split("; ").find((cookie) => cookie.startsWith(prefix));
+
+  if (!match) {
+    return undefined;
+  }
+
+  const rawValue = match.slice(prefix.length);
+
+  try {
+    return decodeURIComponent(rawValue);
+  } catch {
+    return rawValue;
+  }
 }
 
 function getInitialSectionCode(results: CachedResults, sectionCode?: string) {
@@ -481,6 +572,10 @@ function getInitialSectionCode(results: CachedResults, sectionCode?: string) {
   }
 
   return results.sections[0]?.sectionCode;
+}
+
+function getResultsUpdateStamp(results: CachedResults) {
+  return results.source.resultsLoadedAt || results.generatedAt;
 }
 
 function formatDateTime(value: string) {

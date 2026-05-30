@@ -96,6 +96,15 @@ Complete
 - [x] Verify remembered section behavior in the browser.
 - **Status:** complete
 
+### Phase 12: New Results Notice
+
+- [x] Persist the last seen source result update time locally.
+- [x] Compare the current cached `Results Loaded` time with the stored value.
+- [x] Show a notice when newer results are available.
+- [x] Let the user mark the current result timestamp as seen.
+- [x] Verify first-visit and stale-seen-time behavior in a browser.
+- **Status:** complete
+
 ## Key Questions
 
 1. Should daily refresh run in GitHub Actions or Vercel Cron?
@@ -121,6 +130,7 @@ Complete
 | Default-open latest round details | Shows the most recent useful detail immediately while keeping older rounds collapsible. |
 | Link ladder buttons to TROLS directly | The Waverley ladder page embeds TROLS; direct TROLS URLs can select the section or club, which gives useful deep links. |
 | Remember selected section with a cookie | Lets the server render the preferred section on the next visit, avoiding a client-side flash. |
+| Use `Results Loaded` as the new-results marker | It tracks source data freshness and avoids false positives when the local JSON cache regenerates without new WDTA results. |
 
 ## Errors Encountered
 
@@ -133,6 +143,7 @@ Complete
 | Next dev server hung under local Node 23 | 1 | Used production `next start` for browser verification after successful build. |
 | Cache was less than one hour old during manual refresh testing | 1 | Verified disabled button state and API `429 too-fresh` response. |
 | Browser verification variable was redeclared | 1 | Retried with unique reusable variable names; mobile verification passed. |
+| In-app browser would not let test code write cookies directly | 1 | Used an isolated Playwright context with a test cookie to verify the notice behavior. |
 
 ## Notes
 

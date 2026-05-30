@@ -15,6 +15,7 @@ Implemented MVP:
 - Original WDTA button that deep-links to the selected Saturday AM section on the source site.
 - Original ladder links for the selected section and each listed team.
 - Last selected section is remembered for the next visit.
+- Last seen source result update time is saved locally and newer results trigger a notice.
 - Manual refresh button, enabled only when the visible cache is more than one hour old.
 - WDTA fetcher and Cheerio HTML parser.
 - JSON cache at `data/wdta-results.json`.
@@ -152,6 +153,8 @@ on:
 The page also has a manual refresh button. It stays disabled until the currently displayed cache is at least one hour old. The server route at `GET /api/results/refresh` enforces the same one-hour limit and returns `429 Too Many Requests` while the cache is still fresh.
 
 Manual refresh updates the current page from the server response. The daily GitHub Action remains the durable refresh path that commits `data/wdta-results.json` and triggers a Vercel redeploy.
+
+The browser also stores the last seen `Results Loaded` timestamp locally. The first visit records the current source timestamp without showing a notice. Later visits or manual refreshes compare the cached source timestamp with the stored value; if it changed, the page shows a `New results available` notice until the user marks it as seen.
 
 ## Vercel Notes
 

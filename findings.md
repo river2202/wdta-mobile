@@ -92,3 +92,4 @@
 - Mobile detail screenshot showed latest round player lists and rubber scores open by default with no horizontal overflow.
 - Mobile ladder screenshot showed the ladder panel at the top of Section 2, 7 ladder rows, no horizontal overflow at 390px, and team links carrying the `club` parameter.
 - Remembered-section verification showed Section 2 remains active when reopening `/` after selecting Section 2; explicit `?section=AA016` still overrides the remembered value.
+- New-results verification showed first visits store the current `Results Loaded` timestamp without a notice, while a stale stored timestamp displays `New results available` until marked as seen.

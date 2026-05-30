@@ -226,6 +226,26 @@
   - `findings.md`
   - `progress.md`
 
+### Phase 12: New Results Notice
+
+- **Status:** complete
+- **Started:** 2026-05-30 18:27:06 AEST
+- Actions taken:
+  - Added a locally persisted last-seen results timestamp using `Results Loaded`.
+  - Added a `New results available` banner when the current source timestamp differs from the stored timestamp.
+  - Added a `Mark as seen` action that updates the stored timestamp and hides the banner.
+  - Kept the first visit quiet by recording the current timestamp without a notice.
+  - Added guarded localStorage plus cookie persistence for the timestamp.
+  - Verified stale stored timestamp behavior in an isolated browser context.
+  - Verified first-visit behavior in an isolated browser context.
+- Files created/modified:
+  - `components/ResultsApp.tsx`
+  - `app/globals.css`
+  - `README.md`
+  - `task_plan.md`
+  - `findings.md`
+  - `progress.md`
+
 ## Test Results
 
 | Test | Input | Expected | Actual | Status |
@@ -254,6 +274,8 @@
 | Ladder UI Section 2 | In-app browser 390x844 | Ladder is first section content, no overflow, links target source | `AA017` section link, `club=Glenvale`, no overflow | Pass |
 | Remember explicit section | In-app browser `/?section=AA016` | Section 1 is active and remembered | Section 1 active; reopening `/` shows Section 1 | Pass |
 | Remember clicked section | In-app browser click Section 2, then open `/` | Section 2 is active without query string | Section 2 active; no console errors; no overflow | Pass |
+| New results first visit | Isolated browser context without seen timestamp | Store current timestamp and show no notice | No banner; timestamp cookie written; no overflow | Pass |
+| New results stale seen timestamp | Isolated browser context with stale timestamp | Show notice, then hide after `Mark as seen` | Banner shown, hidden after click; timestamp updated; no errors | Pass |
 
 ## Error Log
 
@@ -270,13 +292,14 @@
 | 2026-05-30 18:18:00 AEST | Browser verification variable name was already declared in the persistent browser session | 1 | Retried with unique reusable variable names; ladder UI verification passed. |
 | 2026-05-30 18:35:00 AEST | Lint rejected synchronous `setState` inside an effect while restoring localStorage | 1 | Removed effect-based state restoration and used the server-readable cookie as the primary persistence path. |
 | 2026-05-30 18:35:00 AEST | Browser verification sandbox did not expose localStorage for test cleanup | 1 | Made localStorage persistence best-effort and verified behavior through real page navigation and cookie-backed rendering. |
+| 2026-05-30 18:27:06 AEST | In-app browser evaluation sandbox would not let test code write cookies directly | 1 | Used an isolated Playwright context with a preloaded cookie for stale-timestamp verification. |
 
 ## 5-Question Reboot Check
 
 | Question | Answer |
 |----------|--------|
-| Where am I? | MVP implementation plus manual refresh, source links, match detail panels, ladder standings, and remembered section are complete. |
-| Where am I going? | Commit and push the remembered-section update so Vercel can redeploy. |
+| Where am I? | MVP implementation plus manual refresh, source links, match detail panels, ladder standings, remembered section, and new-results notice are complete. |
+| Where am I going? | Commit and push the new-results notice update so Vercel can redeploy. |
 | What's the goal? | Build and document the WDTA mobile results app with daily caching for Girls S/D Rubbers Sections 1 and 2. |
 | What have I learned? | See `findings.md`. |
-| What have I done? | Created README, planning files, Next.js app, parser/cache workflow, mobile UI, ladder standings, remembered-section behavior, and verification artifacts. |
+| What have I done? | Created README, planning files, Next.js app, parser/cache workflow, mobile UI, ladder standings, remembered-section behavior, new-results notice, and verification artifacts. |
