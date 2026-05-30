@@ -1,0 +1,408 @@
+{
+  "generatedAt": "2026-05-30T06:48:03.856Z",
+  "source": {
+    "url": "https://www.trols.org.au/wdta/results.php",
+    "competitionCode": "AA",
+    "competitionName": "Saturday AM - Winter 2026",
+    "resultsLoadedAt": "26th May 26 @ 06:02:45 PM"
+  },
+  "sections": [
+    {
+      "sectionCode": "AA016",
+      "sectionName": "Girls S/D Rubbers Section 1",
+      "rounds": [
+        {
+          "date": "23 May 26",
+          "round": 4,
+          "matches": [
+            {
+              "matchId": "AA016041",
+              "status": "played",
+              "homeTeam": "Knox Gardens",
+              "awayTeam": "N'hill P'wood",
+              "home": {
+                "points": 3,
+                "rubbers": 1,
+                "sets": 3,
+                "games": 30
+              },
+              "away": {
+                "points": 6,
+                "rubbers": 2,
+                "sets": 4,
+                "games": 36
+              }
+            },
+            {
+              "status": "bye",
+              "homeTeam": "Glenvale",
+              "awayTeam": "Bye"
+            },
+            {
+              "matchId": "AA016043",
+              "status": "played",
+              "homeTeam": "St. Paul Apostle",
+              "awayTeam": "Chadstone",
+              "home": {
+                "points": 6,
+                "rubbers": 2,
+                "sets": 4,
+                "games": 28
+              },
+              "away": {
+                "points": 2,
+                "rubbers": 1,
+                "sets": 2,
+                "games": 20
+              }
+            }
+          ]
+        },
+        {
+          "date": "16 May 26",
+          "round": 3,
+          "matches": [
+            {
+              "matchId": "AA016031",
+              "status": "played",
+              "homeTeam": "Chadstone",
+              "awayTeam": "Glenvale",
+              "home": {
+                "points": 1,
+                "rubbers": 0,
+                "sets": 1,
+                "games": 29
+              },
+              "away": {
+                "points": 8,
+                "rubbers": 3,
+                "sets": 6,
+                "games": 43
+              }
+            },
+            {
+              "matchId": "AA016032",
+              "status": "played",
+              "homeTeam": "N'hill P'wood",
+              "awayTeam": "St. Paul Apostle",
+              "home": {
+                "points": 7,
+                "rubbers": 2,
+                "sets": 5,
+                "games": 39
+              },
+              "away": {
+                "points": 3,
+                "rubbers": 1,
+                "sets": 3,
+                "games": 40
+              }
+            },
+            {
+              "status": "bye",
+              "homeTeam": "Bye",
+              "awayTeam": "Knox Gardens"
+            }
+          ]
+        },
+        {
+          "date": "9 May 26",
+          "round": 2,
+          "matches": [
+            {
+              "status": "washout",
+              "homeTeam": "Knox Gardens",
+              "awayTeam": "Glenvale"
+            },
+            {
+              "status": "washout",
+              "homeTeam": "N'hill P'wood",
+              "awayTeam": "Chadstone"
+            },
+            {
+              "status": "bye",
+              "homeTeam": "Bye",
+              "awayTeam": "St. Paul Apostle"
+            }
+          ]
+        },
+        {
+          "date": "2 May 26",
+          "round": 1,
+          "matches": [
+            {
+              "status": "bye",
+              "homeTeam": "Chadstone",
+              "awayTeam": "Bye"
+            },
+            {
+              "matchId": "AA016012",
+              "status": "played",
+              "homeTeam": "Glenvale",
+              "awayTeam": "N'hill P'wood",
+              "home": {
+                "points": 3,
+                "rubbers": 1,
+                "sets": 3,
+                "games": 37
+              },
+              "away": {
+                "points": 6,
+                "rubbers": 2,
+                "sets": 4,
+                "games": 34
+              }
+            },
+            {
+              "matchId": "AA016013",
+              "status": "played",
+              "homeTeam": "St. Paul Apostle",
+              "awayTeam": "Knox Gardens",
+              "home": {
+                "points": 6,
+                "rubbers": 2,
+                "sets": 4,
+                "games": 32
+              },
+              "away": {
+                "points": 2,
+                "rubbers": 1,
+                "sets": 2,
+                "games": 18
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "sectionCode": "AA017",
+      "sectionName": "Girls S/D Rubbers Section 2",
+      "rounds": [
+        {
+          "date": "23 May 26",
+          "round": 4,
+          "matches": [
+            {
+              "matchId": "AA017041",
+              "status": "played",
+              "homeTeam": "MCC Glen Iris",
+              "awayTeam": "Templeton",
+              "home": {
+                "points": 6,
+                "rubbers": 2,
+                "sets": 4,
+                "games": 32
+              },
+              "away": {
+                "points": 2,
+                "rubbers": 1,
+                "sets": 2,
+                "games": 18
+              }
+            },
+            {
+              "status": "bye",
+              "homeTeam": "Camberwell City",
+              "awayTeam": "Bye",
+              "venueNote": "Playing @ St Marys Primary School"
+            },
+            {
+              "matchId": "AA017043",
+              "status": "played",
+              "homeTeam": "W'Lane Mulgrave",
+              "awayTeam": "Knox Gardens",
+              "home": {
+                "points": 3,
+                "rubbers": 1,
+                "sets": 3,
+                "games": 33
+              },
+              "away": {
+                "points": 6,
+                "rubbers": 2,
+                "sets": 4,
+                "games": 36
+              }
+            },
+            {
+              "matchId": "AA017044",
+              "status": "played",
+              "homeTeam": "Wheelers Hill",
+              "awayTeam": "Glenvale",
+              "home": {
+                "points": 0,
+                "rubbers": 0,
+                "sets": 0,
+                "games": 10
+              },
+              "away": {
+                "points": 8,
+                "rubbers": 3,
+                "sets": 6,
+                "games": 37
+              }
+            }
+          ]
+        },
+        {
+          "date": "16 May 26",
+          "round": 3,
+          "matches": [
+            {
+              "matchId": "AA017031",
+              "status": "played",
+              "homeTeam": "Knox Gardens",
+              "awayTeam": "Camberwell City",
+              "home": {
+                "points": 2,
+                "rubbers": 1,
+                "sets": 2,
+                "games": 24
+              },
+              "away": {
+                "points": 6,
+                "rubbers": 2,
+                "sets": 4,
+                "games": 28
+              }
+            },
+            {
+              "matchId": "AA017032",
+              "status": "played",
+              "homeTeam": "Glenvale",
+              "awayTeam": "MCC Glen Iris",
+              "home": {
+                "points": 8,
+                "rubbers": 3,
+                "sets": 6,
+                "games": 36
+              },
+              "away": {
+                "points": 0,
+                "rubbers": 0,
+                "sets": 0,
+                "games": 8
+              }
+            },
+            {
+              "matchId": "AA017033",
+              "status": "played",
+              "homeTeam": "Templeton",
+              "awayTeam": "Wheelers Hill",
+              "home": {
+                "points": 0,
+                "rubbers": 0,
+                "sets": 0,
+                "games": 7
+              },
+              "away": {
+                "points": 8,
+                "rubbers": 3,
+                "sets": 6,
+                "games": 36
+              }
+            },
+            {
+              "status": "bye",
+              "homeTeam": "Bye",
+              "awayTeam": "W'Lane Mulgrave"
+            }
+          ]
+        },
+        {
+          "date": "9 May 26",
+          "round": 2,
+          "matches": [
+            {
+              "status": "washout",
+              "homeTeam": "MCC Glen Iris",
+              "awayTeam": "Camberwell City"
+            },
+            {
+              "matchId": "AA017022",
+              "status": "played",
+              "homeTeam": "Glenvale",
+              "awayTeam": "Knox Gardens",
+              "home": {
+                "points": 4.5,
+                "rubbers": 0,
+                "sets": 1,
+                "games": 6
+              },
+              "away": {
+                "points": 3.5,
+                "rubbers": 0,
+                "sets": 0,
+                "games": 0
+              }
+            },
+            {
+              "status": "bye",
+              "homeTeam": "Templeton",
+              "awayTeam": "Bye"
+            },
+            {
+              "status": "washout",
+              "homeTeam": "Wheelers Hill",
+              "awayTeam": "W'Lane Mulgrave"
+            }
+          ]
+        },
+        {
+          "date": "2 May 26",
+          "round": 1,
+          "matches": [
+            {
+              "status": "forfeit",
+              "homeTeam": "Knox Gardens",
+              "awayTeam": "Templeton"
+            },
+            {
+              "matchId": "AA017012",
+              "status": "played",
+              "homeTeam": "Camberwell City",
+              "awayTeam": "Wheelers Hill",
+              "venueNote": "Playing @ St Marys Primary School",
+              "home": {
+                "points": 8,
+                "rubbers": 3,
+                "sets": 6,
+                "games": 37
+              },
+              "away": {
+                "points": 0,
+                "rubbers": 0,
+                "sets": 0,
+                "games": 18
+              }
+            },
+            {
+              "matchId": "AA017013",
+              "status": "played",
+              "homeTeam": "W'Lane Mulgrave",
+              "awayTeam": "MCC Glen Iris",
+              "home": {
+                "points": 6,
+                "rubbers": 1,
+                "sets": 4,
+                "games": 31
+              },
+              "away": {
+                "points": 3,
+                "rubbers": 0,
+                "sets": 1,
+                "games": 20
+              }
+            },
+            {
+              "status": "bye",
+              "homeTeam": "Bye",
+              "awayTeam": "Glenvale"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

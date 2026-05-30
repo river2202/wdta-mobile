@@ -1,0 +1,224 @@
+import * as cheerio from "cheerio";
+import type { AnyNode } from "domhandler";
+
+import type {
+  MatchResult,
+  RoundResult,
+  SectionResults,
+  TeamScore,
+} from "./types";
+
+export type SectionOption = {
+  code: string;
+  label: string;
+};
+
+export function cleanText(value: string): string {
+  return value.replace(/\u00a0/g, " ").replace(/\s+/g, " ").trim();
+}
+
+export function parseCompetitionName(html: string): string | undefined {
+  const $ = cheerio.load(html);
+  const selected = cleanText($("#daytime option[selected]").first().text());
+  return selected || undefined;
+}
+
+export function parseResultsLoadedAt(html: string): string | undefined {
+  const $ = cheerio.load(html);
+  const text = $("span")
+    .toArray()
+    .map((element) => cleanText($(element).text()))
+    .find((value) => value.includes("Results Loaded:"));
+
+  return text?.replace(/^Results Loaded:\s*/i, "") || undefined;
+}
+
+export function parseSectionOptions(html: string): SectionOption[] {
+  const $ = cheerio.load(html);
+
+  return $("#section option")
+    .toArray()
+    .map((element) => ({
+      code: String($(element).attr("value") ?? ""),
+      label: cleanText($(element).text()),
+    }))
+    .filter((option) => option.code && option.label);
+}
+
+export function parseSectionResults(
+  html: string,
+  sectionCode: string,
+): SectionResults {
+  const $ = cheerio.load(html);
+  const sectionName =
+    cleanText($("span.mg a").first().text()) ||
+    cleanText($("#section option[selected]").first().text()) ||
+    sectionCode;
+
+  const resultTable = $("table[align='center']")
+    .toArray()
+    .map((element) => $(element))
+    .find((table) => table.find("td.sb").length > 0 && table.text().includes("Home Team"));
+
+  if (!resultTable) {
+    throw new Error(`Could not find result table for ${sectionCode}`);
+  }
+
+  const rounds: RoundResult[] = [];
+  let currentRound: RoundResult | undefined;
+
+  for (const row of resultTable.find("tr").toArray()) {
+    const $row = $(row);
+    const roundHeader = $row.find("td.sb").first();
+
+    if (roundHeader.length > 0) {
+      currentRound = parseRoundHeader(cleanText(roundHeader.text()));
+      if (currentRound) {
+        rounds.push(currentRound);
+      }
+      continue;
+    }
+
+    if (!currentRound || $row.find("th").length > 0) {
+      continue;
+    }
+
+    const cells = $row.find("td").toArray();
+    if (cells.length === 0 || cleanText($row.text()) === "") {
+      continue;
+    }
+
+    const match = parseMatchRow($, cells);
+    if (match) {
+      currentRound.matches.push(match);
+    }
+  }
+
+  if (rounds.length === 0) {
+    throw new Error(`No rounds parsed for ${sectionCode}`);
+  }
+
+  return {
+    sectionCode,
+    sectionName,
+    rounds,
+  };
+}
+
+function parseRoundHeader(text: string): RoundResult | undefined {
+  const match = text.match(/(\d{1,2}\s+[A-Za-z]{3}\s+\d{2}).*?Rd\.?\s*(\d+)/i);
+  if (!match) {
+    return undefined;
+  }
+
+  return {
+    date: match[1],
+    round: Number.parseInt(match[2], 10),
+    matches: [],
+  };
+}
+
+function parseMatchRow(
+  $: cheerio.CheerioAPI,
+  cells: AnyNode[],
+): MatchResult | undefined {
+  if (cells.length >= 11) {
+    const homeCell = cells[0];
+    const awayCell = cells[10];
+    const homeInfo = parseTeamCell($, homeCell);
+    const awayInfo = parseTeamCell($, awayCell);
+    const home = parseTeamScore($, cells, 1);
+    const away = parseTeamScore($, cells, 6);
+
+    if (home && away && homeInfo.team && awayInfo.team) {
+      return {
+        matchId: parseMatchId($, homeCell),
+        status: "played",
+        homeTeam: homeInfo.team,
+        awayTeam: awayInfo.team,
+        venueNote: homeInfo.venueNote,
+        home,
+        away,
+      };
+    }
+  }
+
+  return parseStatusRow($, cells);
+}
+
+function parseStatusRow(
+  $: cheerio.CheerioAPI,
+  cells: AnyNode[],
+): MatchResult | undefined {
+  if (cells.length < 2) {
+    return undefined;
+  }
+
+  const homeInfo = parseTeamCell($, cells[0]);
+  const awayInfo = parseTeamCell($, cells[cells.length - 1]);
+  const middleText = cleanText(
+    cells
+      .slice(1, -1)
+      .map((cell) => $(cell).text())
+      .join(" "),
+  );
+  const rowText = cleanText(cells.map((cell) => $(cell).text()).join(" "));
+
+  const status = /wash out/i.test(rowText)
+    ? "washout"
+    : /forfeited by/i.test(rowText)
+      ? "forfeit"
+      : /\bbye\b/i.test(rowText)
+        ? "bye"
+        : middleText
+          ? "unknown"
+          : undefined;
+
+  if (!status || (!homeInfo.team && !awayInfo.team)) {
+    return undefined;
+  }
+
+  return {
+    status,
+    homeTeam: homeInfo.team,
+    awayTeam: awayInfo.team,
+    venueNote: homeInfo.venueNote,
+  };
+}
+
+function parseTeamCell($: cheerio.CheerioAPI, cell: AnyNode) {
+  const clone = $(cell).clone();
+  const venueNote = cleanText(clone.find("div").first().text());
+  clone.find("div").remove();
+
+  return {
+    team: cleanText(clone.text()),
+    venueNote: venueNote || undefined,
+  };
+}
+
+function parseMatchId($: cheerio.CheerioAPI, cell: AnyNode): string | undefined {
+  const onclick = $(cell).find("a").first().attr("onclick") ?? "";
+  return onclick.match(/open_match\(event,'[^']*','([^']+)'/)?.[1];
+}
+
+function parseTeamScore(
+  $: cheerio.CheerioAPI,
+  cells: AnyNode[],
+  startIndex: number,
+): TeamScore | undefined {
+  const values = cells
+    .slice(startIndex, startIndex + 4)
+    .map((cell) => Number.parseFloat(cleanText($(cell).text())));
+
+  if (values.some((value) => Number.isNaN(value))) {
+    return undefined;
+  }
+
+  return {
+    points: values[0],
+    rubbers: values[1],
+    sets: values[2],
+    games: values[3],
+  };
+}
