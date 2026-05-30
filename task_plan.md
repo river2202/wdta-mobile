@@ -69,6 +69,16 @@ Complete
 - [x] Verify the link updates when switching sections.
 - **Status:** complete
 
+### Phase 9: Match Detail Panels
+
+- [x] Fetch WDTA match popup details for played matches.
+- [x] Parse players, emergency markers, rubber combinations, and set scores.
+- [x] Cache details in `data/wdta-results.json`.
+- [x] Render details in collapsible panels.
+- [x] Open the latest round's details by default.
+- [x] Verify mobile layout.
+- **Status:** complete
+
 ## Key Questions
 
 1. Should daily refresh run in GitHub Actions or Vercel Cron?
@@ -90,6 +100,8 @@ Complete
 | Use source-only `tsconfig.typecheck.json` for manual type checking | `next build` validates generated Next route types; direct `tsc` should focus on project source. |
 | Manual refresh updates the current page but does not commit JSON | Keeps the MVP free of GitHub tokens or runtime storage; daily GitHub Actions remains the durable cache update path. |
 | Original source button uses GET parameters | The source site accepts `which=1&style=&daytime=AA&section=<code>`, so the button can link directly to the selected section. |
+| Cache played match popup details | The source detail pages are stable enough to parse and the once-daily fetch keeps request volume low. |
+| Default-open latest round details | Shows the most recent useful detail immediately while keeping older rounds collapsible. |
 
 ## Errors Encountered
 

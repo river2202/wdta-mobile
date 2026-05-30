@@ -157,6 +157,31 @@
   - `findings.md`
   - `progress.md`
 
+### Phase 9: Match Detail Panels
+
+- **Status:** complete
+- Actions taken:
+  - Added match detail types for players, rubber rows, and match details.
+  - Added parser support for WDTA `match_popup.php` pages.
+  - Updated the fetch pipeline to request details for every played match with a `matchId`.
+  - Ran `npm run refresh:data`; Section 1 parsed 6/6 played match details and Section 2 parsed 9/9.
+  - Rendered detail panels inside played match cards.
+  - Set latest round played match details to open by default.
+  - Kept older detail panels collapsed by default.
+  - Verified Section 1 and Section 2 detail counts and open panel counts with Playwright.
+  - Captured a mobile detail screenshot.
+- Files created/modified:
+  - `lib/wdta/types.ts`
+  - `lib/wdta/parse.ts`
+  - `lib/wdta/fetch.ts`
+  - `data/wdta-results.json`
+  - `components/ResultsApp.tsx`
+  - `app/globals.css`
+  - `README.md`
+  - `task_plan.md`
+  - `findings.md`
+  - `progress.md`
+
 ## Test Results
 
 | Test | Input | Expected | Actual | Status |
@@ -174,6 +199,10 @@
 | Manual refresh server guard | `curl /api/results/refresh` with cache under 1 hour | Server refuses refresh | `429 Too Many Requests`, `status: "too-fresh"` | Pass |
 | Original source link Section 1 | Playwright at `/?section=AA016` | Link targets source Section 1 | `section=AA016` | Pass |
 | Original source link Section 2 | Click Section 2 tab | Link targets source Section 2 | `section=AA017` | Pass |
+| Match detail cache Section 1 | `npm run refresh:data` | Every played Section 1 match has details | 6/6 detailed | Pass |
+| Match detail cache Section 2 | `npm run refresh:data` | Every played Section 2 match has details | 9/9 detailed | Pass |
+| Detail UI Section 1 | Playwright 390x844 | Details render; latest round open; no overflow | 6 panels, 2 open, no overflow | Pass |
+| Detail UI Section 2 | Playwright 390x844 | Details render; latest round open; no overflow | 9 panels, 3 open, no overflow | Pass |
 
 ## Error Log
 
@@ -192,8 +221,8 @@
 
 | Question | Answer |
 |----------|--------|
-| Where am I? | MVP implementation plus manual refresh and original source link are complete. |
-| Where am I going? | Commit and push the source-link update so Vercel can redeploy. |
+| Where am I? | MVP implementation plus manual refresh, original source link, and match detail panels are complete. |
+| Where am I going? | Commit and push the match detail update so Vercel can redeploy. |
 | What's the goal? | Build and document the WDTA mobile results app with daily caching for Girls S/D Rubbers Sections 1 and 2. |
 | What have I learned? | See `findings.md`. |
 | What have I done? | Created README, planning files, Next.js app, parser/cache workflow, mobile UI, and verification artifacts. |

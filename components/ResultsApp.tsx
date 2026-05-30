@@ -3,7 +3,15 @@
 import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 
-import type { CachedResults, MatchResult, RoundResult, SectionResults } from "@/lib/wdta/types";
+import type {
+  CachedResults,
+  MatchDetails,
+  MatchPlayer,
+  MatchResult,
+  RoundResult,
+  RubberDetail,
+  SectionResults,
+} from "@/lib/wdta/types";
 
 const MIN_REFRESH_AGE_MS = 60 * 60 * 1000;
 const ORIGINAL_RESULTS_URL = "https://www.trols.org.au/wdta/results.php";
@@ -146,16 +154,28 @@ export function ResultsApp({
 }
 
 function SectionView({ section }: { section: SectionResults }) {
+  const latestRound = Math.max(...section.rounds.map((round) => round.round));
+
   return (
     <section className="section-view" aria-label={section.sectionName}>
       {section.rounds.map((round) => (
-        <RoundCard key={`${section.sectionCode}-${round.round}`} round={round} />
+        <RoundCard
+          key={`${section.sectionCode}-${round.round}`}
+          round={round}
+          defaultDetailsOpen={round.round === latestRound}
+        />
       ))}
     </section>
   );
 }
 
-function RoundCard({ round }: { round: RoundResult }) {
+function RoundCard({
+  round,
+  defaultDetailsOpen,
+}: {
+  round: RoundResult;
+  defaultDetailsOpen: boolean;
+}) {
   return (
     <section className="round-band">
       <div className="round-heading">
@@ -164,14 +184,24 @@ function RoundCard({ round }: { round: RoundResult }) {
       </div>
       <div className="match-list">
         {round.matches.map((match, index) => (
-          <MatchCard key={match.matchId ?? `${round.round}-${index}`} match={match} />
+          <MatchCard
+            key={match.matchId ?? `${round.round}-${index}`}
+            match={match}
+            defaultDetailsOpen={defaultDetailsOpen}
+          />
         ))}
       </div>
     </section>
   );
 }
 
-function MatchCard({ match }: { match: MatchResult }) {
+function MatchCard({
+  match,
+  defaultDetailsOpen,
+}: {
+  match: MatchResult;
+  defaultDetailsOpen: boolean;
+}) {
   if (match.status !== "played" || !match.home || !match.away) {
     return <StatusCard match={match} />;
   }
@@ -198,7 +228,74 @@ function MatchCard({ match }: { match: MatchResult }) {
         <Stat label="S" home={match.home.sets} away={match.away.sets} />
         <Stat label="G" home={match.home.games} away={match.away.games} />
       </div>
+
+      {match.details ? (
+        <MatchDetailPanel details={match.details} defaultOpen={defaultDetailsOpen} />
+      ) : null}
     </article>
+  );
+}
+
+function MatchDetailPanel({
+  details,
+  defaultOpen,
+}: {
+  details: MatchDetails;
+  defaultOpen: boolean;
+}) {
+  return (
+    <details className="match-detail" open={defaultOpen}>
+      <summary>Match details</summary>
+      <div className="detail-body">
+        <div className="player-grid">
+          <PlayerList team={details.homeTeam} players={details.homePlayers} />
+          <PlayerList team={details.awayTeam} players={details.awayPlayers} align="right" />
+        </div>
+
+        <div className="rubber-list" aria-label="Rubber scores">
+          {details.rubbers.map((rubber, index) => (
+            <RubberRow key={`${rubber.homePosition}-${rubber.awayPosition}-${index}`} rubber={rubber} />
+          ))}
+        </div>
+      </div>
+    </details>
+  );
+}
+
+function PlayerList({
+  team,
+  players,
+  align = "left",
+}: {
+  team: string;
+  players: MatchPlayer[];
+  align?: "left" | "right";
+}) {
+  return (
+    <div className={`player-list ${align}`}>
+      <h3>{team}</h3>
+      <ol>
+        {players.map((player) => (
+          <li key={`${player.position}-${player.name}`}>
+            <span className="player-position">{player.position}</span>
+            <span>{player.name}</span>
+            {player.emergency ? <span className="emergency-badge">E</span> : null}
+          </li>
+        ))}
+      </ol>
+    </div>
+  );
+}
+
+function RubberRow({ rubber }: { rubber: RubberDetail }) {
+  return (
+    <div className="rubber-row">
+      <span className="rubber-side">{rubber.homePosition}</span>
+      <strong className="rubber-score">
+        {rubber.scoreLines.length > 0 ? rubber.scoreLines.join("  ") : "-"}
+      </strong>
+      <span className="rubber-side right">{rubber.awayPosition}</span>
+    </div>
   );
 }
 

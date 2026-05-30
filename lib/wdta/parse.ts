@@ -2,8 +2,11 @@ import * as cheerio from "cheerio";
 import type { AnyNode } from "domhandler";
 
 import type {
+  MatchDetails,
+  MatchPlayer,
   MatchResult,
   RoundResult,
+  RubberDetail,
   SectionResults,
   TeamScore,
 } from "./types";
@@ -102,6 +105,38 @@ export function parseSectionResults(
     sectionCode,
     sectionName,
     rounds,
+  };
+}
+
+export function parseMatchDetails(html: string): MatchDetails {
+  const $ = cheerio.load(html);
+  const heading = cleanText($("td.mb").first().text()) || undefined;
+  const detailTable = $("body > table").eq(1);
+
+  if (detailTable.length === 0) {
+    throw new Error("Could not find match detail table");
+  }
+
+  const teamNames = detailTable
+    .find("tr")
+    .first()
+    .find("b")
+    .toArray()
+    .map((element) => cleanText($(element).text()))
+    .filter(Boolean);
+  const nestedTables = detailTable.find("table").toArray();
+
+  if (teamNames.length < 2 || nestedTables.length < 3) {
+    throw new Error("Could not parse match detail teams");
+  }
+
+  return {
+    heading,
+    homeTeam: teamNames[0],
+    awayTeam: teamNames[1],
+    homePlayers: parsePlayerTable($, nestedTables[0]),
+    awayPlayers: parsePlayerTable($, nestedTables[2]),
+    rubbers: parseRubberTable($, nestedTables[1]),
   };
 }
 
@@ -221,4 +256,55 @@ function parseTeamScore(
     sets: values[2],
     games: values[3],
   };
+}
+
+function parsePlayerTable($: cheerio.CheerioAPI, table: AnyNode): MatchPlayer[] {
+  return $(table)
+    .find("tr")
+    .toArray()
+    .map((row) => {
+      const cells = $(row).find("td").toArray();
+      const marker = cleanText($(cells[0]).text());
+      const playerText = cleanText($(cells[1]).text());
+      const match = playerText.match(/^([^.\s]+)\.\s*(.+)$/);
+
+      return {
+        position: match?.[1] ?? "",
+        name: match?.[2] ?? playerText,
+        emergency: marker === "E",
+      };
+    })
+    .filter((player) => player.name);
+}
+
+function parseRubberTable($: cheerio.CheerioAPI, table: AnyNode): RubberDetail[] {
+  return $(table)
+    .find("tr")
+    .toArray()
+    .filter((row) => $(row).find(".separate").length === 0)
+    .map((row) => {
+      const cells = $(row).find("td").toArray();
+
+      return {
+        homePosition: cleanText($(cells[0]).text()),
+        scoreLines: parseScoreLines($, cells[1]),
+        awayPosition: cleanText($(cells[2]).text()),
+      };
+    })
+    .filter((rubber) => rubber.homePosition || rubber.awayPosition || rubber.scoreLines.length);
+}
+
+function parseScoreLines($: cheerio.CheerioAPI, cell: AnyNode | undefined): string[] {
+  if (!cell) {
+    return [];
+  }
+
+  const html = $(cell).html() ?? "";
+  return html
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<[^>]+>/g, "")
+    .replace(/&nbsp;/g, " ")
+    .split("\n")
+    .map(cleanText)
+    .filter(Boolean);
 }

@@ -35,6 +35,10 @@
 - `GET /api/results/refresh` returns `429 Too Many Requests` with `status: "too-fresh"` while the cache is younger than one hour.
 - The source site supports deep-linking selected result pages via GET, e.g. `results.php?which=1&style=&daytime=AA&section=AA016`.
 - The Original WDTA button updates its link from `AA016` to `AA017` when the user switches sections.
+- WDTA match popup pages expose team rosters, emergency markers, rubber combinations, and set scores in nested tables.
+- `AA016` currently has 6 played matches and all 6 parsed with details.
+- `AA017` currently has 9 played matches and all 9 parsed with details.
+- Latest round details open by default: 2 panels for Section 1, 3 panels for Section 2.
 
 ## Technical Decisions
 
@@ -49,6 +53,8 @@
 | Use a source-only TypeScript config for `npm run typecheck` | Next generated route validation is covered by `next build`; source type checking should not depend on stale `.next` artifacts. |
 | Keep manual refresh non-durable for now | Avoids adding GitHub API tokens or Vercel storage; durable refresh remains the daily GitHub Action. |
 | Use same-tab external navigation for Original WDTA | User asked for a jump to the original data site; the app URL is easy to return to through browser history. |
+| Store match details inside each played `MatchResult` | Keeps card rendering simple and lets manual refresh update details together with summary results. |
+| Default-open all played matches in the latest round | Interprets "recent" as the newest round and avoids picking an arbitrary match from that round. |
 
 ## Issues Encountered
 
@@ -74,3 +80,4 @@
 - Some rows include venue notes such as `Playing @ St Marys Primary School`.
 - Mobile UI converts rows into cards grouped by round.
 - Mobile screenshot after implementation showed readable round groups, section tabs, score cards, and compact status cards.
+- Mobile detail screenshot showed latest round player lists and rubber scores open by default with no horizontal overflow.

@@ -1,12 +1,14 @@
 import {
   parseCompetitionName,
+  parseMatchDetails,
   parseResultsLoadedAt,
   parseSectionOptions,
   parseSectionResults,
 } from "./parse";
-import type { CachedResults, SectionTarget } from "./types";
+import type { CachedResults, MatchResult, SectionResults, SectionTarget } from "./types";
 
 export const SOURCE_URL = "https://www.trols.org.au/wdta/results.php";
+export const MATCH_POPUP_URL = "https://www.trols.org.au/wdta/match_popup.php";
 export const COMPETITION_CODE = "AA";
 export const TARGET_SECTIONS: SectionTarget[] = [
   { label: "Girls S/D Rubbers Section 1", fallbackCode: "AA016" },
@@ -44,7 +46,9 @@ export async function fetchCachedResults(): Promise<CachedResults> {
       section: section.code,
     });
     latestResultsLoadedAt = parseResultsLoadedAt(html) ?? latestResultsLoadedAt;
-    sections.push(parseSectionResults(html, section.code));
+    const sectionResults = parseSectionResults(html, section.code);
+    await attachMatchDetails(sectionResults);
+    sections.push(sectionResults);
   }
 
   return {
@@ -57,6 +61,38 @@ export async function fetchCachedResults(): Promise<CachedResults> {
     },
     sections,
   };
+}
+
+async function attachMatchDetails(section: SectionResults) {
+  for (const round of section.rounds) {
+    for (const match of round.matches) {
+      if (match.status === "played" && match.matchId) {
+        match.details = await fetchMatchDetails(match);
+      }
+    }
+  }
+}
+
+async function fetchMatchDetails(match: MatchResult) {
+  if (!match.matchId) {
+    return undefined;
+  }
+
+  const url = new URL(MATCH_POPUP_URL);
+  url.searchParams.set("matchid", match.matchId);
+  url.searchParams.set("seasonid", "");
+  const response = await fetch(url, {
+    headers: REQUEST_HEADERS,
+    cache: "no-store",
+  });
+
+  if (!response.ok) {
+    throw new Error(
+      `WDTA match detail request failed for ${match.matchId} with ${response.status} ${response.statusText}`,
+    );
+  }
+
+  return parseMatchDetails(await response.text());
 }
 
 async function postResultsPage(fields: Record<string, string>): Promise<string> {
@@ -74,4 +110,3 @@ async function postResultsPage(fields: Record<string, string>): Promise<string> 
 
   return response.text();
 }
-

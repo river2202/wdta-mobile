@@ -7,6 +7,27 @@ export type TeamScore = {
   games: number;
 };
 
+export type MatchPlayer = {
+  position: string;
+  name: string;
+  emergency?: boolean;
+};
+
+export type RubberDetail = {
+  homePosition: string;
+  awayPosition: string;
+  scoreLines: string[];
+};
+
+export type MatchDetails = {
+  heading?: string;
+  homeTeam: string;
+  awayTeam: string;
+  homePlayers: MatchPlayer[];
+  awayPlayers: MatchPlayer[];
+  rubbers: RubberDetail[];
+};
+
 export type MatchResult = {
   matchId?: string;
   status: MatchStatus;
@@ -15,6 +36,7 @@ export type MatchResult = {
   venueNote?: string;
   home?: TeamScore;
   away?: TeamScore;
+  details?: MatchDetails;
 };
 
 export type RoundResult = {
@@ -44,4 +66,3 @@ export type SectionTarget = {
   label: string;
   fallbackCode: string;
 };
-

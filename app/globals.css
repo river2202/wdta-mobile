@@ -291,6 +291,147 @@ h1 {
   font-size: 0.98rem;
 }
 
+.match-detail {
+  border-top: 1px solid var(--line);
+  padding-top: 2px;
+}
+
+.match-detail summary {
+  min-height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--accent-strong);
+  cursor: pointer;
+  font-size: 0.88rem;
+  font-weight: 850;
+  list-style: none;
+}
+
+.match-detail summary::-webkit-details-marker {
+  display: none;
+}
+
+.match-detail summary::after {
+  content: "+";
+  display: grid;
+  width: 24px;
+  height: 24px;
+  place-items: center;
+  border-radius: 999px;
+  background: rgba(29, 111, 80, 0.1);
+  color: var(--accent-strong);
+  font-weight: 900;
+}
+
+.match-detail[open] summary::after {
+  content: "-";
+}
+
+.detail-body {
+  display: grid;
+  gap: 12px;
+  padding-top: 8px;
+}
+
+.player-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.player-list {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.player-list.right {
+  text-align: right;
+}
+
+.player-list h3 {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 850;
+  line-height: 1.2;
+}
+
+.player-list ol {
+  display: grid;
+  gap: 5px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.player-list li {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 6px;
+  color: var(--ink);
+  font-size: 0.86rem;
+  font-weight: 720;
+  line-height: 1.25;
+}
+
+.player-list.right li {
+  justify-content: flex-end;
+}
+
+.player-position,
+.emergency-badge {
+  display: inline-grid;
+  width: 20px;
+  height: 20px;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--surface-muted);
+  color: var(--muted);
+  font-size: 0.7rem;
+  font-weight: 850;
+}
+
+.emergency-badge {
+  background: rgba(166, 61, 53, 0.12);
+  color: var(--red);
+}
+
+.rubber-list {
+  display: grid;
+  gap: 6px;
+}
+
+.rubber-row {
+  display: grid;
+  grid-template-columns: minmax(42px, 0.7fr) minmax(0, 2fr) minmax(42px, 0.7fr);
+  align-items: center;
+  gap: 8px;
+  border-radius: 8px;
+  background: var(--surface-muted);
+  padding: 8px 10px;
+}
+
+.rubber-side {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 850;
+}
+
+.rubber-side.right {
+  text-align: right;
+}
+
+.rubber-score {
+  color: var(--ink);
+  font-size: 0.92rem;
+  line-height: 1.2;
+  text-align: center;
+}
+
 .status-card {
   box-shadow: none;
 }
@@ -387,6 +528,16 @@ h1 {
 
   .team-name {
     font-size: 0.94rem;
+  }
+
+  .player-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .player-list.right,
+  .player-list.right li {
+    text-align: left;
+    justify-content: flex-start;
   }
 
   .status-row {

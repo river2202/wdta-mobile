@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-30T06:48:03.856Z",
+  "generatedAt": "2026-05-30T07:38:56.590Z",
   "source": {
     "url": "https://www.trols.org.au/wdta/results.php",
     "competitionCode": "AA",
@@ -31,6 +31,67 @@
                 "rubbers": 2,
                 "sets": 4,
                 "games": 36
+              },
+              "details": {
+                "heading": "Girls S/D Rubbers Section 1 Rd.4 on 23rd May 26",
+                "homeTeam": "Knox Gardens",
+                "awayTeam": "N'hill P'wood",
+                "homePlayers": [
+                  {
+                    "position": "1",
+                    "name": "Jenny Huang",
+                    "emergency": false
+                  },
+                  {
+                    "position": "2",
+                    "name": "Abigail Ng",
+                    "emergency": true
+                  },
+                  {
+                    "position": "3",
+                    "name": "Erin Choy",
+                    "emergency": false
+                  }
+                ],
+                "awayPlayers": [
+                  {
+                    "position": "1",
+                    "name": "Aarchi Patel",
+                    "emergency": false
+                  },
+                  {
+                    "position": "2",
+                    "name": "Archita Patel",
+                    "emergency": false
+                  }
+                ],
+                "rubbers": [
+                  {
+                    "homePosition": "1",
+                    "scoreLines": [
+                      "6-2",
+                      "6-3"
+                    ],
+                    "awayPosition": "1"
+                  },
+                  {
+                    "homePosition": "2",
+                    "scoreLines": [
+                      "1-6",
+                      "4-6"
+                    ],
+                    "awayPosition": "2"
+                  },
+                  {
+                    "homePosition": "1+3",
+                    "scoreLines": [
+                      "0-6",
+                      "7-6",
+                      "6-7"
+                    ],
+                    "awayPosition": "1+2"
+                  }
+                ]
               }
             },
             {
@@ -54,6 +115,61 @@
                 "rubbers": 1,
                 "sets": 2,
                 "games": 20
+              },
+              "details": {
+                "heading": "Girls S/D Rubbers Section 1 Rd.4 on 23rd May 26",
+                "homeTeam": "St. Paul Apostle",
+                "awayTeam": "Chadstone",
+                "homePlayers": [
+                  {
+                    "position": "1",
+                    "name": "Amsana Sasikaran",
+                    "emergency": false
+                  },
+                  {
+                    "position": "2",
+                    "name": "Kiera Aponso",
+                    "emergency": false
+                  }
+                ],
+                "awayPlayers": [
+                  {
+                    "position": "1",
+                    "name": "Leyla Ozyurt",
+                    "emergency": false
+                  },
+                  {
+                    "position": "2",
+                    "name": "Kitty Wanganeen",
+                    "emergency": false
+                  }
+                ],
+                "rubbers": [
+                  {
+                    "homePosition": "1",
+                    "scoreLines": [
+                      "6-0",
+                      "6-0"
+                    ],
+                    "awayPosition": "1"
+                  },
+                  {
+                    "homePosition": "2",
+                    "scoreLines": [
+                      "1-6",
+                      "2-6"
+                    ],
+                    "awayPosition": "2"
+                  },
+                  {
+                    "homePosition": "1+2",
+                    "scoreLines": [
+                      "6-3",
+                      "7-5"
+                    ],
+                    "awayPosition": "1+2"
+                  }
+                ]
               }
             }
           ]
@@ -78,6 +194,62 @@
                 "rubbers": 3,
                 "sets": 6,
                 "games": 43
+              },
+              "details": {
+                "heading": "Girls S/D Rubbers Section 1 Rd.3 on 16th May 26",
+                "homeTeam": "Chadstone",
+                "awayTeam": "Glenvale",
+                "homePlayers": [
+                  {
+                    "position": "1",
+                    "name": "Leyla Ozyurt",
+                    "emergency": false
+                  },
+                  {
+                    "position": "2",
+                    "name": "Kitty Wanganeen",
+                    "emergency": false
+                  }
+                ],
+                "awayPlayers": [
+                  {
+                    "position": "1",
+                    "name": "Aurelia Fakhrai",
+                    "emergency": false
+                  },
+                  {
+                    "position": "2",
+                    "name": "Annika Balazsy",
+                    "emergency": false
+                  }
+                ],
+                "rubbers": [
+                  {
+                    "homePosition": "1",
+                    "scoreLines": [
+                      "5-7",
+                      "6-4",
+                      "6-7"
+                    ],
+                    "awayPosition": "1"
+                  },
+                  {
+                    "homePosition": "2",
+                    "scoreLines": [
+                      "3-6",
+                      "5-7"
+                    ],
+                    "awayPosition": "2"
+                  },
+                  {
+                    "homePosition": "1+2",
+                    "scoreLines": [
+                      "2-6",
+                      "2-6"
+                    ],
+                    "awayPosition": "1+2"
+                  }
+                ]
               }
             },
             {
@@ -96,6 +268,63 @@
                 "rubbers": 1,
                 "sets": 3,
                 "games": 40
+              },
+              "details": {
+                "heading": "Girls S/D Rubbers Section 1 Rd.3 on 16th May 26",
+                "homeTeam": "N'hill P'wood",
+                "awayTeam": "St. Paul Apostle",
+                "homePlayers": [
+                  {
+                    "position": "1",
+                    "name": "Aarchi Patel",
+                    "emergency": false
+                  },
+                  {
+                    "position": "2",
+                    "name": "Archita Patel",
+                    "emergency": false
+                  }
+                ],
+                "awayPlayers": [
+                  {
+                    "position": "1",
+                    "name": "Maha Kurumina",
+                    "emergency": false
+                  },
+                  {
+                    "position": "2",
+                    "name": "Kiera Aponso",
+                    "emergency": false
+                  }
+                ],
+                "rubbers": [
+                  {
+                    "homePosition": "1",
+                    "scoreLines": [
+                      "6-3",
+                      "1-6",
+                      "6-7"
+                    ],
+                    "awayPosition": "1"
+                  },
+                  {
+                    "homePosition": "2",
+                    "scoreLines": [
+                      "6-3",
+                      "6-4"
+                    ],
+                    "awayPosition": "2"
+                  },
+                  {
+                    "homePosition": "1+2",
+                    "scoreLines": [
+                      "0-6",
+                      "7-5",
+                      "7-6"
+                    ],
+                    "awayPosition": "1+2"
+                  }
+                ]
               }
             },
             {
@@ -151,6 +380,62 @@
                 "rubbers": 2,
                 "sets": 4,
                 "games": 34
+              },
+              "details": {
+                "heading": "Girls S/D Rubbers Section 1 Rd.1 on 2nd May 26",
+                "homeTeam": "Glenvale",
+                "awayTeam": "N'hill P'wood",
+                "homePlayers": [
+                  {
+                    "position": "1",
+                    "name": "Aurelia Fakhrai",
+                    "emergency": false
+                  },
+                  {
+                    "position": "2",
+                    "name": "Emma Ionescu",
+                    "emergency": true
+                  }
+                ],
+                "awayPlayers": [
+                  {
+                    "position": "1",
+                    "name": "Aarchi Patel",
+                    "emergency": false
+                  },
+                  {
+                    "position": "2",
+                    "name": "Archita Patel",
+                    "emergency": false
+                  }
+                ],
+                "rubbers": [
+                  {
+                    "homePosition": "1",
+                    "scoreLines": [
+                      "6-2",
+                      "6-2"
+                    ],
+                    "awayPosition": "1"
+                  },
+                  {
+                    "homePosition": "2",
+                    "scoreLines": [
+                      "4-6",
+                      "5-7"
+                    ],
+                    "awayPosition": "2"
+                  },
+                  {
+                    "homePosition": "1+2",
+                    "scoreLines": [
+                      "6-4",
+                      "4-6",
+                      "6-7"
+                    ],
+                    "awayPosition": "1+2"
+                  }
+                ]
               }
             },
             {
@@ -169,6 +454,61 @@
                 "rubbers": 1,
                 "sets": 2,
                 "games": 18
+              },
+              "details": {
+                "heading": "Girls S/D Rubbers Section 1 Rd.1 on 2nd May 26",
+                "homeTeam": "St. Paul Apostle",
+                "awayTeam": "Knox Gardens",
+                "homePlayers": [
+                  {
+                    "position": "1",
+                    "name": "Amsana Sasikaran",
+                    "emergency": false
+                  },
+                  {
+                    "position": "2",
+                    "name": "Maha Kurumina",
+                    "emergency": false
+                  }
+                ],
+                "awayPlayers": [
+                  {
+                    "position": "1",
+                    "name": "Jenny Huang",
+                    "emergency": false
+                  },
+                  {
+                    "position": "2",
+                    "name": "Abigail Ng",
+                    "emergency": true
+                  }
+                ],
+                "rubbers": [
+                  {
+                    "homePosition": "1",
+                    "scoreLines": [
+                      "4-6",
+                      "4-6"
+                    ],
+                    "awayPosition": "1"
+                  },
+                  {
+                    "homePosition": "2",
+                    "scoreLines": [
+                      "6-0",
+                      "6-3"
+                    ],
+                    "awayPosition": "2"
+                  },
+                  {
+                    "homePosition": "1+2",
+                    "scoreLines": [
+                      "6-1",
+                      "6-2"
+                    ],
+                    "awayPosition": "1+2"
+                  }
+                ]
               }
             }
           ]
@@ -199,6 +539,61 @@
                 "rubbers": 1,
                 "sets": 2,
                 "games": 18
+              },
+              "details": {
+                "heading": "Girls S/D Rubbers Section 2 Rd.4 on 23rd May 26",
+                "homeTeam": "MCC Glen Iris",
+                "awayTeam": "Templeton",
+                "homePlayers": [
+                  {
+                    "position": "1",
+                    "name": "Teekshna Bharath",
+                    "emergency": false
+                  },
+                  {
+                    "position": "2",
+                    "name": "Audrey Chu",
+                    "emergency": false
+                  }
+                ],
+                "awayPlayers": [
+                  {
+                    "position": "1",
+                    "name": "Shanaya Lewis",
+                    "emergency": false
+                  },
+                  {
+                    "position": "2",
+                    "name": "Zara Gopal",
+                    "emergency": false
+                  }
+                ],
+                "rubbers": [
+                  {
+                    "homePosition": "1",
+                    "scoreLines": [
+                      "6-3",
+                      "6-2"
+                    ],
+                    "awayPosition": "1"
+                  },
+                  {
+                    "homePosition": "2",
+                    "scoreLines": [
+                      "4-6",
+                      "4-6"
+                    ],
+                    "awayPosition": "2"
+                  },
+                  {
+                    "homePosition": "1+2",
+                    "scoreLines": [
+                      "6-1",
+                      "6-0"
+                    ],
+                    "awayPosition": "1+2"
+                  }
+                ]
               }
             },
             {
@@ -223,6 +618,62 @@
                 "rubbers": 2,
                 "sets": 4,
                 "games": 36
+              },
+              "details": {
+                "heading": "Girls S/D Rubbers Section 2 Rd.4 on 23rd May 26",
+                "homeTeam": "W'Lane Mulgrave",
+                "awayTeam": "Knox Gardens",
+                "homePlayers": [
+                  {
+                    "position": "1",
+                    "name": "Rita Wang",
+                    "emergency": false
+                  },
+                  {
+                    "position": "2",
+                    "name": "Haley Anstee",
+                    "emergency": false
+                  }
+                ],
+                "awayPlayers": [
+                  {
+                    "position": "1",
+                    "name": "Annabelle Zhang",
+                    "emergency": false
+                  },
+                  {
+                    "position": "2",
+                    "name": "Hana Takahashi- Chan",
+                    "emergency": false
+                  }
+                ],
+                "rubbers": [
+                  {
+                    "homePosition": "1",
+                    "scoreLines": [
+                      "6-3",
+                      "6-1"
+                    ],
+                    "awayPosition": "1"
+                  },
+                  {
+                    "homePosition": "2",
+                    "scoreLines": [
+                      "0-6",
+                      "7-6",
+                      "6-7"
+                    ],
+                    "awayPosition": "2"
+                  },
+                  {
+                    "homePosition": "1+2",
+                    "scoreLines": [
+                      "6-7",
+                      "2-6"
+                    ],
+                    "awayPosition": "1+2"
+                  }
+                ]
               }
             },
             {
@@ -241,6 +692,61 @@
                 "rubbers": 3,
                 "sets": 6,
                 "games": 37
+              },
+              "details": {
+                "heading": "Girls S/D Rubbers Section 2 Rd.4 on 23rd May 26",
+                "homeTeam": "Wheelers Hill",
+                "awayTeam": "Glenvale",
+                "homePlayers": [
+                  {
+                    "position": "1",
+                    "name": "Seraphine Woo",
+                    "emergency": false
+                  },
+                  {
+                    "position": "2",
+                    "name": "Mia Kaplantzis",
+                    "emergency": false
+                  }
+                ],
+                "awayPlayers": [
+                  {
+                    "position": "1",
+                    "name": "Daniya Gaur",
+                    "emergency": false
+                  },
+                  {
+                    "position": "2",
+                    "name": "Maree Kolokithas",
+                    "emergency": false
+                  }
+                ],
+                "rubbers": [
+                  {
+                    "homePosition": "1",
+                    "scoreLines": [
+                      "2-6",
+                      "0-6"
+                    ],
+                    "awayPosition": "1"
+                  },
+                  {
+                    "homePosition": "2",
+                    "scoreLines": [
+                      "6-7",
+                      "1-6"
+                    ],
+                    "awayPosition": "2"
+                  },
+                  {
+                    "homePosition": "1+2",
+                    "scoreLines": [
+                      "0-6",
+                      "1-6"
+                    ],
+                    "awayPosition": "1+2"
+                  }
+                ]
               }
             }
           ]
@@ -265,6 +771,61 @@
                 "rubbers": 2,
                 "sets": 4,
                 "games": 28
+              },
+              "details": {
+                "heading": "Girls S/D Rubbers Section 2 Rd.3 on 16th May 26",
+                "homeTeam": "Knox Gardens",
+                "awayTeam": "Camberwell City",
+                "homePlayers": [
+                  {
+                    "position": "1",
+                    "name": "Annabelle Zhang",
+                    "emergency": false
+                  },
+                  {
+                    "position": "2",
+                    "name": "Abigail Ng",
+                    "emergency": false
+                  }
+                ],
+                "awayPlayers": [
+                  {
+                    "position": "1",
+                    "name": "Ali Zhang",
+                    "emergency": false
+                  },
+                  {
+                    "position": "2",
+                    "name": "Angela Wu",
+                    "emergency": false
+                  }
+                ],
+                "rubbers": [
+                  {
+                    "homePosition": "1",
+                    "scoreLines": [
+                      "6-0",
+                      "6-3"
+                    ],
+                    "awayPosition": "1"
+                  },
+                  {
+                    "homePosition": "2",
+                    "scoreLines": [
+                      "3-6",
+                      "5-7"
+                    ],
+                    "awayPosition": "2"
+                  },
+                  {
+                    "homePosition": "1+2",
+                    "scoreLines": [
+                      "3-6",
+                      "1-6"
+                    ],
+                    "awayPosition": "1+2"
+                  }
+                ]
               }
             },
             {
@@ -283,6 +844,61 @@
                 "rubbers": 0,
                 "sets": 0,
                 "games": 8
+              },
+              "details": {
+                "heading": "Girls S/D Rubbers Section 2 Rd.3 on 16th May 26",
+                "homeTeam": "Glenvale",
+                "awayTeam": "MCC Glen Iris",
+                "homePlayers": [
+                  {
+                    "position": "1",
+                    "name": "Daniya Gaur",
+                    "emergency": false
+                  },
+                  {
+                    "position": "2",
+                    "name": "Maree Kolokithas",
+                    "emergency": false
+                  }
+                ],
+                "awayPlayers": [
+                  {
+                    "position": "1",
+                    "name": "Teekshna Bharath",
+                    "emergency": false
+                  },
+                  {
+                    "position": "2",
+                    "name": "Jessica Nad",
+                    "emergency": false
+                  }
+                ],
+                "rubbers": [
+                  {
+                    "homePosition": "1",
+                    "scoreLines": [
+                      "6-4",
+                      "6-1"
+                    ],
+                    "awayPosition": "1"
+                  },
+                  {
+                    "homePosition": "2",
+                    "scoreLines": [
+                      "6-1",
+                      "6-0"
+                    ],
+                    "awayPosition": "2"
+                  },
+                  {
+                    "homePosition": "1+2",
+                    "scoreLines": [
+                      "6-0",
+                      "6-2"
+                    ],
+                    "awayPosition": "1+2"
+                  }
+                ]
               }
             },
             {
@@ -301,6 +917,61 @@
                 "rubbers": 3,
                 "sets": 6,
                 "games": 36
+              },
+              "details": {
+                "heading": "Girls S/D Rubbers Section 2 Rd.3 on 16th May 26",
+                "homeTeam": "Templeton",
+                "awayTeam": "Wheelers Hill",
+                "homePlayers": [
+                  {
+                    "position": "1",
+                    "name": "Shanaya Lewis",
+                    "emergency": false
+                  },
+                  {
+                    "position": "2",
+                    "name": "Zara Gopal",
+                    "emergency": false
+                  }
+                ],
+                "awayPlayers": [
+                  {
+                    "position": "1",
+                    "name": "Seraphine Woo",
+                    "emergency": false
+                  },
+                  {
+                    "position": "2",
+                    "name": "Mia Kaplantzis",
+                    "emergency": false
+                  }
+                ],
+                "rubbers": [
+                  {
+                    "homePosition": "1",
+                    "scoreLines": [
+                      "2-6",
+                      "2-6"
+                    ],
+                    "awayPosition": "1"
+                  },
+                  {
+                    "homePosition": "2",
+                    "scoreLines": [
+                      "0-6",
+                      "0-6"
+                    ],
+                    "awayPosition": "2"
+                  },
+                  {
+                    "homePosition": "1+2",
+                    "scoreLines": [
+                      "3-6",
+                      "0-6"
+                    ],
+                    "awayPosition": "1+2"
+                  }
+                ]
               }
             },
             {
@@ -335,6 +1006,54 @@
                 "rubbers": 0,
                 "sets": 0,
                 "games": 0
+              },
+              "details": {
+                "heading": "Girls S/D Rubbers Section 2 Rd.2 on 9th May 26",
+                "homeTeam": "Glenvale",
+                "awayTeam": "Knox Gardens",
+                "homePlayers": [
+                  {
+                    "position": "1",
+                    "name": "Daniya Gaur",
+                    "emergency": false
+                  },
+                  {
+                    "position": "2",
+                    "name": "Rachel Zhang",
+                    "emergency": true
+                  }
+                ],
+                "awayPlayers": [
+                  {
+                    "position": "1",
+                    "name": "Hana Takahashi- Chan",
+                    "emergency": false
+                  },
+                  {
+                    "position": "2",
+                    "name": "Abigail Ng",
+                    "emergency": false
+                  }
+                ],
+                "rubbers": [
+                  {
+                    "homePosition": "1",
+                    "scoreLines": [],
+                    "awayPosition": "1"
+                  },
+                  {
+                    "homePosition": "2",
+                    "scoreLines": [],
+                    "awayPosition": "2"
+                  },
+                  {
+                    "homePosition": "1+2",
+                    "scoreLines": [
+                      "6-0"
+                    ],
+                    "awayPosition": "1+2"
+                  }
+                ]
               }
             },
             {
@@ -375,6 +1094,61 @@
                 "rubbers": 0,
                 "sets": 0,
                 "games": 18
+              },
+              "details": {
+                "heading": "Girls S/D Rubbers Section 2 Rd.1 on 2nd May 26",
+                "homeTeam": "Camberwell City",
+                "awayTeam": "Wheelers Hill",
+                "homePlayers": [
+                  {
+                    "position": "1",
+                    "name": "Ali Zhang",
+                    "emergency": false
+                  },
+                  {
+                    "position": "2",
+                    "name": "Sophia Zhang",
+                    "emergency": false
+                  }
+                ],
+                "awayPlayers": [
+                  {
+                    "position": "1",
+                    "name": "Seraphine Woo",
+                    "emergency": false
+                  },
+                  {
+                    "position": "2",
+                    "name": "Mia Kaplantzis",
+                    "emergency": false
+                  }
+                ],
+                "rubbers": [
+                  {
+                    "homePosition": "1",
+                    "scoreLines": [
+                      "7-5",
+                      "6-3"
+                    ],
+                    "awayPosition": "1"
+                  },
+                  {
+                    "homePosition": "2",
+                    "scoreLines": [
+                      "6-3",
+                      "6-4"
+                    ],
+                    "awayPosition": "2"
+                  },
+                  {
+                    "homePosition": "1+2",
+                    "scoreLines": [
+                      "6-3",
+                      "6-0"
+                    ],
+                    "awayPosition": "1+2"
+                  }
+                ]
               }
             },
             {
@@ -393,6 +1167,60 @@
                 "rubbers": 0,
                 "sets": 1,
                 "games": 20
+              },
+              "details": {
+                "heading": "Girls S/D Rubbers Section 2 Rd.1 on 2nd May 26",
+                "homeTeam": "W'Lane Mulgrave",
+                "awayTeam": "MCC Glen Iris",
+                "homePlayers": [
+                  {
+                    "position": "1",
+                    "name": "Rita Wang",
+                    "emergency": false
+                  },
+                  {
+                    "position": "2",
+                    "name": "Haley Anstee",
+                    "emergency": false
+                  }
+                ],
+                "awayPlayers": [
+                  {
+                    "position": "1",
+                    "name": "Teekshna Bharath",
+                    "emergency": false
+                  },
+                  {
+                    "position": "2",
+                    "name": "Audrey Chu",
+                    "emergency": false
+                  }
+                ],
+                "rubbers": [
+                  {
+                    "homePosition": "1",
+                    "scoreLines": [
+                      "6-2"
+                    ],
+                    "awayPosition": "1"
+                  },
+                  {
+                    "homePosition": "2",
+                    "scoreLines": [
+                      "6-2"
+                    ],
+                    "awayPosition": "2"
+                  },
+                  {
+                    "homePosition": "1+2",
+                    "scoreLines": [
+                      "6-3",
+                      "6-7",
+                      "7-6"
+                    ],
+                    "awayPosition": "1+2"
+                  }
+                ]
               }
             },
             {

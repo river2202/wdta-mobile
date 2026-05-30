@@ -10,6 +10,7 @@ Implemented MVP:
 
 - Next.js App Router with TypeScript.
 - Mobile-first results page with Section 1 / Section 2 tabs.
+- Cached match details from WDTA home-team popups, shown in collapsible panels.
 - Original WDTA button that deep-links to the selected Saturday AM section on the source site.
 - Manual refresh button, enabled only when the visible cache is more than one hour old.
 - WDTA fetcher and Cheerio HTML parser.
@@ -57,6 +58,14 @@ which=1&style=&daytime=AA&section=AA017
 ```
 
 The parser also discovers section IDs from the competition page by visible option text, then falls back to `AA016` and `AA017` if the options cannot be resolved.
+
+Played match rows include IDs such as `AA016041`. Those detail pages are fetched from:
+
+```txt
+https://www.trols.org.au/wdta/match_popup.php?matchid=AA016041&seasonid=
+```
+
+The cached details include team rosters, emergency markers, rubber combinations, and set scores.
 
 ## Architecture
 
@@ -204,6 +213,7 @@ type MatchResult = {
   venueNote?: string;
   home?: TeamScore;
   away?: TeamScore;
+  details?: MatchDetails;
 };
 ```
 
