@@ -116,6 +116,29 @@
   - `findings.md`
   - `progress.md`
 
+### Phase 7: Manual Refresh Control
+
+- **Status:** complete
+- **Started:** 2026-05-30 17:27:49 AEST
+- Actions taken:
+  - Moved result rendering into `components/ResultsApp.tsx` so the page can update in-place after a manual refresh.
+  - Added a refresh button that is disabled until the visible cache is at least one hour old.
+  - Added `GET /api/results/refresh` to enforce the one-hour limit on the server.
+  - Added runtime in-memory refresh cache for the API route.
+  - Kept the daily GitHub Action as the durable JSON cache path.
+  - Updated styles for the refresh control and section tab buttons.
+  - Verified the current under-one-hour cache shows a disabled refresh button with remaining wait time.
+  - Verified the API returns `429 Too Many Requests` with `status: "too-fresh"` while cache is under one hour old.
+- Files created/modified:
+  - `app/page.tsx`
+  - `app/globals.css`
+  - `app/api/results/refresh/route.ts`
+  - `components/ResultsApp.tsx`
+  - `README.md`
+  - `task_plan.md`
+  - `findings.md`
+  - `progress.md`
+
 ## Test Results
 
 | Test | Input | Expected | Actual | Status |
@@ -129,6 +152,8 @@
 | Mobile visual check | Playwright 390x844 screenshot | Results render without horizontal overflow | 12 Section 1 cards, no overflow | Pass |
 | Desktop visual check | Playwright 1024x900 screenshot | Results render without horizontal overflow | 12 Section 1 cards, no overflow | Pass |
 | Section 2 route check | Playwright `/?section=AA017` at 390px | Section 2 tab active with cards | 16 cards, no overflow | Pass |
+| Manual refresh disabled state | Playwright 390x844 with cache under 1 hour | Button disabled and shows remaining wait time | Disabled with remaining wait time, no overflow | Pass |
+| Manual refresh server guard | `curl /api/results/refresh` with cache under 1 hour | Server refuses refresh | `429 Too Many Requests`, `status: "too-fresh"` | Pass |
 
 ## Error Log
 
@@ -141,13 +166,14 @@
 | 2026-05-30 16:39:50 AEST | Playwright package existed but browser binary was missing | 1 | Installed Chromium through the bundled Playwright CLI. |
 | 2026-05-30 16:39:50 AEST | Playwright `networkidle` timed out on Next dev server | 1 | Switched to DOM selector waits and then production `next start`. |
 | 2026-05-30 16:39:50 AEST | `next dev` accepted connections but did not return content under local Node 23.11 | 1 | Used production server for verification; build/start works. |
+| 2026-05-30 17:27:49 AEST | Manual refresh could not exercise success path because current cache was still under one hour old | 1 | Verified fetch path separately via `npm run refresh:data` and verified API guard/UI disabled state for the current cache. |
 
 ## 5-Question Reboot Check
 
 | Question | Answer |
 |----------|--------|
-| Where am I? | MVP implementation and deployment prep are complete. |
-| Where am I going? | External handoff remains: push to GitHub and import into Vercel. |
+| Where am I? | MVP implementation plus manual refresh control are complete. |
+| Where am I going? | Commit and push the manual refresh update so Vercel can redeploy. |
 | What's the goal? | Build and document the WDTA mobile results app with daily caching for Girls S/D Rubbers Sections 1 and 2. |
 | What have I learned? | See `findings.md`. |
 | What have I done? | Created README, planning files, Next.js app, parser/cache workflow, mobile UI, and verification artifacts. |

@@ -39,6 +39,10 @@ a {
   text-decoration: none;
 }
 
+button {
+  font: inherit;
+}
+
 .page-shell {
   width: min(100%, 820px);
   margin: 0 auto;
@@ -89,6 +93,39 @@ h1 {
   line-height: 1.35;
 }
 
+.header-actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+}
+
+.refresh-button {
+  min-height: 40px;
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  background: var(--accent);
+  color: #ffffff;
+  cursor: pointer;
+  font-size: 0.86rem;
+  font-weight: 850;
+  padding: 8px 12px;
+  white-space: nowrap;
+}
+
+.refresh-button:disabled {
+  border-color: var(--line);
+  background: var(--surface-muted);
+  color: var(--muted);
+  cursor: not-allowed;
+}
+
+.refresh-status {
+  color: var(--accent-strong);
+  font-size: 0.86rem;
+  font-weight: 800;
+}
+
 .section-tabs {
   position: sticky;
   top: 0;
@@ -101,7 +138,8 @@ h1 {
   backdrop-filter: blur(12px);
 }
 
-.section-tabs a {
+.section-tabs button {
+  appearance: none;
   min-height: 44px;
   display: grid;
   place-items: center;
@@ -109,10 +147,12 @@ h1 {
   border-radius: 8px;
   background: var(--surface);
   color: var(--muted);
+  cursor: pointer;
   font-weight: 800;
+  padding: 0 10px;
 }
 
-.section-tabs a.active {
+.section-tabs button.active {
   border-color: var(--accent);
   background: var(--accent);
   color: #ffffff;
@@ -308,6 +348,14 @@ h1 {
 }
 
 @media (max-width: 390px) {
+  .header-actions {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .refresh-button {
+    width: 100%;
+  }
+
   .points {
     min-width: 78px;
     font-size: 1.22rem;

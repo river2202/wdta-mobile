@@ -10,6 +10,7 @@ Implemented MVP:
 
 - Next.js App Router with TypeScript.
 - Mobile-first results page with Section 1 / Section 2 tabs.
+- Manual refresh button, enabled only when the visible cache is more than one hour old.
 - WDTA fetcher and Cheerio HTML parser.
 - JSON cache at `data/wdta-results.json`.
 - GitHub Actions daily refresh workflow.
@@ -118,6 +119,10 @@ on:
 ```
 
 `20:00 UTC` is around early morning in Melbourne, depending on daylight saving. The workflow installs dependencies, runs `npm run refresh:data`, and commits `data/wdta-results.json` only when the cache changes.
+
+The page also has a manual refresh button. It stays disabled until the currently displayed cache is at least one hour old. The server route at `GET /api/results/refresh` enforces the same one-hour limit and returns `429 Too Many Requests` while the cache is still fresh.
+
+Manual refresh updates the current page from the server response. The daily GitHub Action remains the durable refresh path that commits `data/wdta-results.json` and triggers a Vercel redeploy.
 
 ## Vercel Notes
 

@@ -54,6 +54,14 @@ Complete
 - [x] Prepare Vercel deployment path through GitHub repository import.
 - **Status:** complete
 
+### Phase 7: Manual Refresh Control
+
+- [x] Add a manual refresh button.
+- [x] Disable manual refresh until the cache is at least one hour old.
+- [x] Add a server-side refresh route that enforces the same limit.
+- [x] Verify the under-one-hour disabled state.
+- **Status:** complete
+
 ## Key Questions
 
 1. Should daily refresh run in GitHub Actions or Vercel Cron?
@@ -73,6 +81,7 @@ Complete
 | Keep source fetch frequency to once per day | Reduces load on the source site and matches the actual freshness requirement. |
 | Treat Vercel Cron as optional later | It is viable, but needs a durable cache if refresh work happens at runtime. |
 | Use source-only `tsconfig.typecheck.json` for manual type checking | `next build` validates generated Next route types; direct `tsc` should focus on project source. |
+| Manual refresh updates the current page but does not commit JSON | Keeps the MVP free of GitHub tokens or runtime storage; daily GitHub Actions remains the durable cache update path. |
 
 ## Errors Encountered
 
@@ -83,6 +92,7 @@ Complete
 | Next generated `.next/types` failed under direct `tsc` | 1 | Added `tsconfig.typecheck.json` and kept generated route validation under `next build`. |
 | Bundled Playwright package lacked browser binary | 1 | Installed Chromium through the bundled Playwright CLI. |
 | Next dev server hung under local Node 23 | 1 | Used production `next start` for browser verification after successful build. |
+| Cache was less than one hour old during manual refresh testing | 1 | Verified disabled button state and API `429 too-fresh` response. |
 
 ## Notes
 
