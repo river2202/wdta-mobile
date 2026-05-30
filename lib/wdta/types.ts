@@ -45,9 +45,19 @@ export type RoundResult = {
   matches: MatchResult[];
 };
 
+export type LadderEntry = {
+  rank: number;
+  team: string;
+  points: number;
+  percentage: number;
+  venueNote?: string;
+  finalsCut?: boolean;
+};
+
 export type SectionResults = {
   sectionCode: string;
   sectionName: string;
+  ladder?: LadderEntry[];
   rounds: RoundResult[];
 };
 
@@ -58,6 +68,7 @@ export type CachedResults = {
     competitionCode: string;
     competitionName: string;
     resultsLoadedAt?: string;
+    laddersLoadedAt?: string;
   };
   sections: SectionResults[];
 };

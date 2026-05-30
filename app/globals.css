@@ -183,6 +183,126 @@ h1 {
   gap: 10px;
 }
 
+.ladder-panel {
+  display: grid;
+  gap: 12px;
+  border: 1px solid rgba(216, 210, 196, 0.9);
+  border-radius: 8px;
+  background: var(--surface);
+  padding: 14px;
+  box-shadow: var(--shadow);
+}
+
+.ladder-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.panel-label {
+  margin: 0 0 2px;
+  color: var(--accent-strong);
+  font-size: 0.74rem;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.ladder-heading h2 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.ladder-source-link {
+  min-height: 36px;
+  display: inline-grid;
+  place-items: center;
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  background: var(--accent);
+  color: #ffffff;
+  font-size: 0.8rem;
+  font-weight: 850;
+  padding: 7px 10px;
+  white-space: nowrap;
+}
+
+.ladder-list {
+  display: grid;
+  gap: 7px;
+}
+
+.ladder-row {
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr) 54px 64px auto;
+  align-items: center;
+  gap: 8px;
+  border-radius: 8px;
+  background: var(--surface-muted);
+  padding: 8px;
+}
+
+.ladder-rank {
+  display: inline-grid;
+  width: 26px;
+  height: 26px;
+  place-items: center;
+  border-radius: 999px;
+  background: #ffffff;
+  color: var(--accent-strong);
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+.ladder-team {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.ladder-team strong {
+  color: var(--ink);
+  font-size: 0.93rem;
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+}
+
+.ladder-team span {
+  color: var(--muted);
+  font-size: 0.72rem;
+  line-height: 1.2;
+}
+
+.ladder-stat {
+  display: grid;
+  gap: 1px;
+  text-align: right;
+}
+
+.ladder-stat span {
+  color: var(--muted);
+  font-size: 0.67rem;
+  font-weight: 850;
+}
+
+.ladder-stat strong {
+  font-size: 0.9rem;
+  line-height: 1.1;
+}
+
+.team-source-link {
+  min-height: 30px;
+  display: inline-grid;
+  place-items: center;
+  border: 1px solid rgba(29, 111, 80, 0.2);
+  border-radius: 8px;
+  background: #ffffff;
+  color: var(--accent-strong);
+  font-size: 0.72rem;
+  font-weight: 900;
+  padding: 5px 7px;
+}
+
 .round-heading {
   display: flex;
   align-items: baseline;
@@ -501,6 +621,10 @@ h1 {
   .match-card {
     padding: 16px;
   }
+
+  .ladder-panel {
+    padding: 16px;
+  }
 }
 
 @media (max-width: 390px) {
@@ -528,6 +652,24 @@ h1 {
 
   .team-name {
     font-size: 0.94rem;
+  }
+
+  .ladder-heading {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .ladder-source-link {
+    width: 100%;
+  }
+
+  .ladder-row {
+    grid-template-columns: 26px minmax(0, 1fr) 48px 56px;
+  }
+
+  .team-source-link {
+    grid-column: 2 / -1;
+    width: 100%;
   }
 
   .player-grid {

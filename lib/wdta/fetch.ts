@@ -1,5 +1,7 @@
 import {
   parseCompetitionName,
+  parseLadderEntries,
+  parseLaddersLoadedAt,
   parseMatchDetails,
   parseResultsLoadedAt,
   parseSectionOptions,
@@ -9,6 +11,7 @@ import type { CachedResults, MatchResult, SectionResults, SectionTarget } from "
 
 export const SOURCE_URL = "https://www.trols.org.au/wdta/results.php";
 export const MATCH_POPUP_URL = "https://www.trols.org.au/wdta/match_popup.php";
+export const LADDERS_URL = "https://www.trols.org.au/wdta/ladders.php";
 export const COMPETITION_CODE = "AA";
 export const TARGET_SECTIONS: SectionTarget[] = [
   { label: "Girls S/D Rubbers Section 1", fallbackCode: "AA016" },
@@ -37,6 +40,7 @@ export async function fetchCachedResults(): Promise<CachedResults> {
 
   const sections = [];
   let latestResultsLoadedAt = parseResultsLoadedAt(competitionHtml);
+  let latestLaddersLoadedAt: string | undefined;
 
   for (const section of resolvedSections) {
     const html = await postResultsPage({
@@ -47,6 +51,9 @@ export async function fetchCachedResults(): Promise<CachedResults> {
     });
     latestResultsLoadedAt = parseResultsLoadedAt(html) ?? latestResultsLoadedAt;
     const sectionResults = parseSectionResults(html, section.code);
+    const ladderHtml = await getLadderPage(section.code);
+    latestLaddersLoadedAt = parseLaddersLoadedAt(ladderHtml) ?? latestLaddersLoadedAt;
+    sectionResults.ladder = parseLadderEntries(ladderHtml, section.code);
     await attachMatchDetails(sectionResults);
     sections.push(sectionResults);
   }
@@ -58,6 +65,7 @@ export async function fetchCachedResults(): Promise<CachedResults> {
       competitionCode: COMPETITION_CODE,
       competitionName: parseCompetitionName(competitionHtml) ?? "Saturday AM",
       resultsLoadedAt: latestResultsLoadedAt,
+      laddersLoadedAt: latestLaddersLoadedAt,
     },
     sections,
   };
@@ -93,6 +101,26 @@ async function fetchMatchDetails(match: MatchResult) {
   }
 
   return parseMatchDetails(await response.text());
+}
+
+async function getLadderPage(sectionCode: string): Promise<string> {
+  const url = new URL(LADDERS_URL);
+  url.searchParams.set("which", "1");
+  url.searchParams.set("style", "");
+  url.searchParams.set("daytime", COMPETITION_CODE);
+  url.searchParams.set("section", sectionCode);
+  const response = await fetch(url, {
+    headers: REQUEST_HEADERS,
+    cache: "no-store",
+  });
+
+  if (!response.ok) {
+    throw new Error(
+      `WDTA ladder request failed for ${sectionCode} with ${response.status} ${response.statusText}`,
+    );
+  }
+
+  return response.text();
 }
 
 async function postResultsPage(fields: Record<string, string>): Promise<string> {

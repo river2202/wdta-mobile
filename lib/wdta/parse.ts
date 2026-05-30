@@ -2,6 +2,7 @@ import * as cheerio from "cheerio";
 import type { AnyNode } from "domhandler";
 
 import type {
+  LadderEntry,
   MatchDetails,
   MatchPlayer,
   MatchResult,
@@ -34,6 +35,16 @@ export function parseResultsLoadedAt(html: string): string | undefined {
     .find((value) => value.includes("Results Loaded:"));
 
   return text?.replace(/^Results Loaded:\s*/i, "") || undefined;
+}
+
+export function parseLaddersLoadedAt(html: string): string | undefined {
+  const $ = cheerio.load(html);
+  const text = $("span")
+    .toArray()
+    .map((element) => cleanText($(element).text()))
+    .find((value) => value.includes("Ladders Loaded:"));
+
+  return text?.replace(/^Ladders Loaded:\s*/i, "") || undefined;
 }
 
 export function parseSectionOptions(html: string): SectionOption[] {
@@ -138,6 +149,53 @@ export function parseMatchDetails(html: string): MatchDetails {
     awayPlayers: parsePlayerTable($, nestedTables[2]),
     rubbers: parseRubberTable($, nestedTables[1]),
   };
+}
+
+export function parseLadderEntries(html: string, sectionCode: string): LadderEntry[] {
+  const $ = cheerio.load(html);
+  const ladderTable = $("table")
+    .toArray()
+    .map((element) => $(element))
+    .find((table) => table.find(`a[href*="section=${sectionCode}"]`).length > 0);
+
+  if (!ladderTable) {
+    throw new Error(`Could not find ladder table for ${sectionCode}`);
+  }
+
+  const rows = ladderTable.find("tr").toArray().slice(1);
+  const entries: LadderEntry[] = [];
+
+  for (const row of rows) {
+    const cells = $(row).find("td").toArray();
+    const rowText = cleanText($(row).text());
+
+    if (cells.length < 3 || rowText === "") {
+      continue;
+    }
+
+    const teamInfo = parseTeamCell($, cells[0]);
+    const points = Number.parseFloat(cleanText($(cells[1]).text()));
+    const percentage = Number.parseFloat(cleanText($(cells[2]).text()));
+
+    if (!teamInfo.team || Number.isNaN(points) || Number.isNaN(percentage)) {
+      continue;
+    }
+
+    entries.push({
+      rank: entries.length + 1,
+      team: teamInfo.team,
+      points,
+      percentage,
+      venueNote: teamInfo.venueNote,
+      finalsCut: $(cells[0]).hasClass("separate"),
+    });
+  }
+
+  if (entries.length === 0) {
+    throw new Error(`No ladder entries parsed for ${sectionCode}`);
+  }
+
+  return entries;
 }
 
 function parseRoundHeader(text: string): RoundResult | undefined {

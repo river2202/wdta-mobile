@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 
 import type {
   CachedResults,
+  LadderEntry,
   MatchDetails,
   MatchPlayer,
   MatchResult,
@@ -15,6 +16,7 @@ import type {
 
 const MIN_REFRESH_AGE_MS = 60 * 60 * 1000;
 const ORIGINAL_RESULTS_URL = "https://www.trols.org.au/wdta/results.php";
+const ORIGINAL_LADDERS_URL = "https://www.trols.org.au/wdta/ladders.php";
 
 type RefreshResponse = {
   status: "refreshed" | "too-fresh" | "error";
@@ -158,6 +160,7 @@ function SectionView({ section }: { section: SectionResults }) {
 
   return (
     <section className="section-view" aria-label={section.sectionName}>
+      {section.ladder ? <LadderPanel section={section} entries={section.ladder} /> : null}
       {section.rounds.map((round) => (
         <RoundCard
           key={`${section.sectionCode}-${round.round}`}
@@ -165,6 +168,59 @@ function SectionView({ section }: { section: SectionResults }) {
           defaultDetailsOpen={round.round === latestRound}
         />
       ))}
+    </section>
+  );
+}
+
+function LadderPanel({
+  section,
+  entries,
+}: {
+  section: SectionResults;
+  entries: LadderEntry[];
+}) {
+  return (
+    <section className="ladder-panel" aria-label={`${section.sectionName} ladder`}>
+      <div className="ladder-heading">
+        <div>
+          <p className="panel-label">Current ladder</p>
+          <h2>{section.sectionName.replace("Girls S/D Rubbers ", "")}</h2>
+        </div>
+        <a
+          className="ladder-source-link"
+          href={buildOriginalLadderUrl(section.sectionCode)}
+          aria-label={`Open original ladder for ${section.sectionName}`}
+        >
+          Original ladder
+        </a>
+      </div>
+
+      <div className="ladder-list">
+        {entries.map((entry) => (
+          <div className="ladder-row" key={`${section.sectionCode}-${entry.rank}-${entry.team}`}>
+            <span className="ladder-rank">{entry.rank}</span>
+            <div className="ladder-team">
+              <strong>{entry.team}</strong>
+              {entry.venueNote ? <span>{entry.venueNote}</span> : null}
+            </div>
+            <div className="ladder-stat">
+              <span>Pts</span>
+              <strong>{formatNumber(entry.points)}</strong>
+            </div>
+            <div className="ladder-stat">
+              <span>%</span>
+              <strong>{entry.percentage.toFixed(2)}</strong>
+            </div>
+            <a
+              className="team-source-link"
+              href={buildOriginalClubLadderUrl(entry.team)}
+              aria-label={`Open original ladder for ${entry.team}`}
+            >
+              Team ladder
+            </a>
+          </div>
+        ))}
+      </div>
     </section>
   );
 }
@@ -376,6 +432,24 @@ function buildOriginalResultsUrl(sectionCode: string) {
   url.searchParams.set("style", "");
   url.searchParams.set("daytime", "AA");
   url.searchParams.set("section", sectionCode);
+  return url.toString();
+}
+
+function buildOriginalLadderUrl(sectionCode: string) {
+  const url = new URL(ORIGINAL_LADDERS_URL);
+  url.searchParams.set("which", "1");
+  url.searchParams.set("style", "");
+  url.searchParams.set("daytime", "AA");
+  url.searchParams.set("section", sectionCode);
+  return url.toString();
+}
+
+function buildOriginalClubLadderUrl(team: string) {
+  const url = new URL(ORIGINAL_LADDERS_URL);
+  url.searchParams.set("which", "2");
+  url.searchParams.set("style", "");
+  url.searchParams.set("daytime", "AA");
+  url.searchParams.set("club", team);
   return url.toString();
 }
 

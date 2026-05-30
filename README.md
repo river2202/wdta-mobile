@@ -10,8 +10,10 @@ Implemented MVP:
 
 - Next.js App Router with TypeScript.
 - Mobile-first results page with Section 1 / Section 2 tabs.
+- Cached current ladder standings for Section 1 and Section 2, shown before match results.
 - Cached match details from WDTA home-team popups, shown in collapsible panels.
 - Original WDTA button that deep-links to the selected Saturday AM section on the source site.
+- Original ladder links for the selected section and each listed team.
 - Manual refresh button, enabled only when the visible cache is more than one hour old.
 - WDTA fetcher and Cheerio HTML parser.
 - JSON cache at `data/wdta-results.json`.
@@ -43,6 +45,20 @@ Observed source page:
 https://www.trols.org.au/wdta/results.php
 ```
 
+The public Waverley ladder page is:
+
+```txt
+https://www.waverleytennis.asn.au/ladders.html
+```
+
+That page embeds the TROLS ladder view, which can be queried directly for a section or club:
+
+```txt
+GET https://www.trols.org.au/wdta/ladders.php?which=1&style=&daytime=AA&section=AA016
+GET https://www.trols.org.au/wdta/ladders.php?which=1&style=&daytime=AA&section=AA017
+GET https://www.trols.org.au/wdta/ladders.php?which=2&style=&daytime=AA&club=<team>
+```
+
 The current Saturday morning competition is selected with:
 
 ```txt
@@ -67,6 +83,8 @@ https://www.trols.org.au/wdta/match_popup.php?matchid=AA016041&seasonid=
 
 The cached details include team rosters, emergency markers, rubber combinations, and set scores.
 
+The cached ladder entries include rank, team name, points, percentage, optional venue notes, and the finals-cut marker from the source table.
+
 ## Architecture
 
 GitHub is the durable cache and Vercel is the mobile delivery layer.
@@ -74,7 +92,7 @@ GitHub is the durable cache and Vercel is the mobile delivery layer.
 ```mermaid
 flowchart LR
   A["GitHub Actions daily schedule"] --> B["Fetch WDTA HTML"]
-  B --> C["Parse Section 1 and Section 2"]
+  B --> C["Parse results, details, and ladders"]
   C --> D["Write data/wdta-results.json"]
   D --> E["Commit cached JSON to GitHub"]
   E --> F["Vercel production deploy"]
@@ -189,6 +207,7 @@ type CachedResults = {
     competitionCode: string;
     competitionName: string;
     resultsLoadedAt?: string;
+    laddersLoadedAt?: string;
   };
   sections: SectionResults[];
 };
@@ -196,7 +215,17 @@ type CachedResults = {
 type SectionResults = {
   sectionCode: string;
   sectionName: string;
+  ladder?: LadderEntry[];
   rounds: RoundResult[];
+};
+
+type LadderEntry = {
+  rank: number;
+  team: string;
+  points: number;
+  percentage: number;
+  venueNote?: string;
+  finalsCut?: boolean;
 };
 
 type RoundResult = {

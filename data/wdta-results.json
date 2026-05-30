@@ -1,10 +1,11 @@
 {
-  "generatedAt": "2026-05-30T07:38:56.590Z",
+  "generatedAt": "2026-05-30T08:14:40.369Z",
   "source": {
     "url": "https://www.trols.org.au/wdta/results.php",
     "competitionCode": "AA",
     "competitionName": "Saturday AM - Winter 2026",
-    "resultsLoadedAt": "26th May 26 @ 06:02:45 PM"
+    "resultsLoadedAt": "26th May 26 @ 06:02:45 PM",
+    "laddersLoadedAt": "26th May 26 @ 06:02:45 PM"
   },
   "sections": [
     {
@@ -512,6 +513,43 @@
               }
             }
           ]
+        }
+      ],
+      "ladder": [
+        {
+          "rank": 1,
+          "team": "N'hill P'wood",
+          "points": 23,
+          "percentage": 101.87,
+          "finalsCut": false
+        },
+        {
+          "rank": 2,
+          "team": "St. Paul Apostle",
+          "points": 15,
+          "percentage": 129.87,
+          "finalsCut": false
+        },
+        {
+          "rank": 3,
+          "team": "Glenvale",
+          "points": 15,
+          "percentage": 126.98,
+          "finalsCut": false
+        },
+        {
+          "rank": 4,
+          "team": "Knox Gardens",
+          "points": 9,
+          "percentage": 70.59,
+          "finalsCut": true
+        },
+        {
+          "rank": 5,
+          "team": "Chadstone",
+          "points": 7,
+          "percentage": 69.01,
+          "finalsCut": false
         }
       ]
     },
@@ -1229,6 +1267,58 @@
               "awayTeam": "Glenvale"
             }
           ]
+        }
+      ],
+      "ladder": [
+        {
+          "rank": 1,
+          "team": "Glenvale",
+          "points": 20.5,
+          "percentage": 438.89,
+          "finalsCut": false
+        },
+        {
+          "rank": 2,
+          "team": "Knox Gardens",
+          "points": 19.5,
+          "percentage": 89.55,
+          "finalsCut": false
+        },
+        {
+          "rank": 3,
+          "team": "Camberwell City",
+          "points": 18,
+          "percentage": 154.76,
+          "venueNote": "Playing @ St Marys Primary School",
+          "finalsCut": false
+        },
+        {
+          "rank": 4,
+          "team": "W'Lane Mulgrave",
+          "points": 13,
+          "percentage": 114.29,
+          "finalsCut": false
+        },
+        {
+          "rank": 5,
+          "team": "MCC Glen Iris",
+          "points": 13,
+          "percentage": 70.59,
+          "finalsCut": true
+        },
+        {
+          "rank": 6,
+          "team": "Wheelers Hill",
+          "points": 12,
+          "percentage": 79.01,
+          "finalsCut": false
+        },
+        {
+          "rank": 7,
+          "team": "Templeton",
+          "points": 2,
+          "percentage": 36.76,
+          "finalsCut": false
         }
       ]
     }

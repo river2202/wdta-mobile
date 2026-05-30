@@ -79,12 +79,21 @@ Complete
 - [x] Verify mobile layout.
 - **Status:** complete
 
+### Phase 10: Ladder Standings
+
+- [x] Fetch current ladder standings for Girls S/D Rubbers Section 1 and Section 2.
+- [x] Cache ladder entries in `data/wdta-results.json`.
+- [x] Render current ladders before match results.
+- [x] Add original ladder links for the selected section and each listed team.
+- [x] Verify mobile layout and deep-link parameters.
+- **Status:** complete
+
 ## Key Questions
 
 1. Should daily refresh run in GitHub Actions or Vercel Cron?
    - Current decision: GitHub Actions for MVP, because it can commit a durable JSON cache without adding runtime storage.
 2. Should match detail pages be parsed now?
-   - Current decision: not for MVP; summary rows are enough first.
+   - Current decision: yes; match detail panels are implemented and cached.
 3. How should future season code changes be handled?
    - Current decision: resolve section codes by option text first, then fall back to known codes.
 
@@ -102,6 +111,7 @@ Complete
 | Original source button uses GET parameters | The source site accepts `which=1&style=&daytime=AA&section=<code>`, so the button can link directly to the selected section. |
 | Cache played match popup details | The source detail pages are stable enough to parse and the once-daily fetch keeps request volume low. |
 | Default-open latest round details | Shows the most recent useful detail immediately while keeping older rounds collapsible. |
+| Link ladder buttons to TROLS directly | The Waverley ladder page embeds TROLS; direct TROLS URLs can select the section or club, which gives useful deep links. |
 
 ## Errors Encountered
 
@@ -113,6 +123,7 @@ Complete
 | Bundled Playwright package lacked browser binary | 1 | Installed Chromium through the bundled Playwright CLI. |
 | Next dev server hung under local Node 23 | 1 | Used production `next start` for browser verification after successful build. |
 | Cache was less than one hour old during manual refresh testing | 1 | Verified disabled button state and API `429 too-fresh` response. |
+| Browser verification variable was redeclared | 1 | Retried with unique reusable variable names; mobile verification passed. |
 
 ## Notes
 

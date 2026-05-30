@@ -11,6 +11,8 @@
 ## Research Findings
 
 - WDTA results page: `https://www.trols.org.au/wdta/results.php`.
+- Waverley ladder page: `https://www.waverleytennis.asn.au/ladders.html`.
+- The Waverley ladder page embeds the TROLS ladder app, so deep links use `https://www.trols.org.au/wdta/ladders.php`.
 - Competition selector currently uses `daytime=AA` for `Saturday AM - Winter 2026`.
 - Section IDs currently observed:
   - `AA016`: `Girls S/D Rubbers Section 1`
@@ -35,6 +37,11 @@
 - `GET /api/results/refresh` returns `429 Too Many Requests` with `status: "too-fresh"` while the cache is younger than one hour.
 - The source site supports deep-linking selected result pages via GET, e.g. `results.php?which=1&style=&daytime=AA&section=AA016`.
 - The Original WDTA button updates its link from `AA016` to `AA017` when the user switches sections.
+- The ladder source supports deep-linking selected section pages via GET, e.g. `ladders.php?which=1&style=&daytime=AA&section=AA016`.
+- The ladder source also supports club-focused pages via GET, e.g. `ladders.php?which=2&style=&daytime=AA&club=Knox+Gardens`.
+- Current Section 1 ladder parse returned 5 teams, led by `N'hill P'wood` with 23 points.
+- Current Section 2 ladder parse returned 7 teams, led by `Glenvale` with 20.5 points.
+- Ladder pages showed `Ladders Loaded: 26th May 26 @ 06:02:45 PM` during inspection on 2026-05-30.
 - WDTA match popup pages expose team rosters, emergency markers, rubber combinations, and set scores in nested tables.
 - `AA016` currently has 6 played matches and all 6 parsed with details.
 - `AA017` currently has 9 played matches and all 9 parsed with details.
@@ -55,6 +62,8 @@
 | Use same-tab external navigation for Original WDTA | User asked for a jump to the original data site; the app URL is easy to return to through browser history. |
 | Store match details inside each played `MatchResult` | Keeps card rendering simple and lets manual refresh update details together with summary results. |
 | Default-open all played matches in the latest round | Interprets "recent" as the newest round and avoids picking an arbitrary match from that round. |
+| Store ladder standings inside each `SectionResults` | Keeps the selected section self-contained for rendering and manual refresh updates. |
+| Use TROLS ladder URLs for original links | The Waverley page is a wrapper, while TROLS URLs can select the requested section or team. |
 
 ## Issues Encountered
 
@@ -81,3 +90,4 @@
 - Mobile UI converts rows into cards grouped by round.
 - Mobile screenshot after implementation showed readable round groups, section tabs, score cards, and compact status cards.
 - Mobile detail screenshot showed latest round player lists and rubber scores open by default with no horizontal overflow.
+- Mobile ladder screenshot showed the ladder panel at the top of Section 2, 7 ladder rows, no horizontal overflow at 390px, and team links carrying the `club` parameter.

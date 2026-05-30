@@ -182,6 +182,32 @@
   - `findings.md`
   - `progress.md`
 
+### Phase 10: Ladder Standings
+
+- **Status:** complete
+- **Started:** 2026-05-30 18:18:00 AEST
+- Actions taken:
+  - Added ladder entry types and cache metadata for `laddersLoadedAt`.
+  - Added parser support for WDTA ladder tables and finals-cut row markers.
+  - Updated the fetch pipeline to request ladder pages for `AA016` and `AA017`.
+  - Ran `npm run refresh:data`; Section 1 cached 5 ladder entries and Section 2 cached 7.
+  - Rendered current ladder standings before the match-result rounds.
+  - Added an `Original ladder` section link and per-team `Team ladder` links with `club=` parameters.
+  - Verified mobile layout at 390px with the in-app browser.
+  - Captured a mobile ladder screenshot.
+- Files created/modified:
+  - `lib/wdta/types.ts`
+  - `lib/wdta/parse.ts`
+  - `lib/wdta/fetch.ts`
+  - `data/wdta-results.json`
+  - `components/ResultsApp.tsx`
+  - `app/globals.css`
+  - `README.md`
+  - `task_plan.md`
+  - `findings.md`
+  - `progress.md`
+  - `artifacts/mobile-ladder.png`
+
 ## Test Results
 
 | Test | Input | Expected | Actual | Status |
@@ -192,6 +218,7 @@
 | Type check | `npm run typecheck` | No TypeScript errors in source | Passed | Pass |
 | Lint | `npm run lint` | No lint errors | Passed | Pass |
 | Build | `npm run build` | Production build succeeds | Passed | Pass |
+| Dependency audit | `npm audit --audit-level=moderate` | No moderate or higher vulnerabilities | 0 vulnerabilities | Pass |
 | Mobile visual check | Playwright 390x844 screenshot | Results render without horizontal overflow | 12 Section 1 cards, no overflow | Pass |
 | Desktop visual check | Playwright 1024x900 screenshot | Results render without horizontal overflow | 12 Section 1 cards, no overflow | Pass |
 | Section 2 route check | Playwright `/?section=AA017` at 390px | Section 2 tab active with cards | 16 cards, no overflow | Pass |
@@ -203,6 +230,10 @@
 | Match detail cache Section 2 | `npm run refresh:data` | Every played Section 2 match has details | 9/9 detailed | Pass |
 | Detail UI Section 1 | Playwright 390x844 | Details render; latest round open; no overflow | 6 panels, 2 open, no overflow | Pass |
 | Detail UI Section 2 | Playwright 390x844 | Details render; latest round open; no overflow | 9 panels, 3 open, no overflow | Pass |
+| Ladder cache Section 1 | `npm run refresh:data` | Section 1 has current ladder entries | 5 entries; first team `N'hill P'wood` | Pass |
+| Ladder cache Section 2 | `npm run refresh:data` | Section 2 has current ladder entries | 7 entries; first team `Glenvale` | Pass |
+| Ladder UI Section 1 | In-app browser 390x844 | Ladder is first section content, no overflow, links target source | `AA016` section link, `club=N%27hill+P%27wood`, no overflow | Pass |
+| Ladder UI Section 2 | In-app browser 390x844 | Ladder is first section content, no overflow, links target source | `AA017` section link, `club=Glenvale`, no overflow | Pass |
 
 ## Error Log
 
@@ -216,13 +247,14 @@
 | 2026-05-30 16:39:50 AEST | Playwright `networkidle` timed out on Next dev server | 1 | Switched to DOM selector waits and then production `next start`. |
 | 2026-05-30 16:39:50 AEST | `next dev` accepted connections but did not return content under local Node 23.11 | 1 | Used production server for verification; build/start works. |
 | 2026-05-30 17:27:49 AEST | Manual refresh could not exercise success path because current cache was still under one hour old | 1 | Verified fetch path separately via `npm run refresh:data` and verified API guard/UI disabled state for the current cache. |
+| 2026-05-30 18:18:00 AEST | Browser verification variable name was already declared in the persistent browser session | 1 | Retried with unique reusable variable names; ladder UI verification passed. |
 
 ## 5-Question Reboot Check
 
 | Question | Answer |
 |----------|--------|
-| Where am I? | MVP implementation plus manual refresh, original source link, and match detail panels are complete. |
-| Where am I going? | Commit and push the match detail update so Vercel can redeploy. |
+| Where am I? | MVP implementation plus manual refresh, source links, match detail panels, and ladder standings are complete. |
+| Where am I going? | Commit and push the ladder standings update so Vercel can redeploy. |
 | What's the goal? | Build and document the WDTA mobile results app with daily caching for Girls S/D Rubbers Sections 1 and 2. |
 | What have I learned? | See `findings.md`. |
-| What have I done? | Created README, planning files, Next.js app, parser/cache workflow, mobile UI, and verification artifacts. |
+| What have I done? | Created README, planning files, Next.js app, parser/cache workflow, mobile UI, ladder standings, and verification artifacts. |
