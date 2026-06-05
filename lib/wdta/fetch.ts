@@ -1,5 +1,6 @@
 import {
   parseCompetitionName,
+  parseCompetitionOptions,
   parseLadderEntries,
   parseLaddersLoadedAt,
   parseMatchDetails,
@@ -7,69 +8,99 @@ import {
   parseSectionOptions,
   parseSectionResults,
 } from "./parse";
-import type { CachedResults, MatchResult, SectionResults, SectionTarget } from "./types";
+import type { CachedResults, MatchResult, SectionResults } from "./types";
 
 export const SOURCE_URL = "https://www.trols.org.au/wdta/results.php";
 export const MATCH_POPUP_URL = "https://www.trols.org.au/wdta/match_popup.php";
 export const LADDERS_URL = "https://www.trols.org.au/wdta/ladders.php";
-export const COMPETITION_CODE = "AA";
-export const TARGET_SECTIONS: SectionTarget[] = [
-  { label: "Girls S/D Rubbers Section 1", fallbackCode: "AA016" },
-  { label: "Girls S/D Rubbers Section 2", fallbackCode: "AA017" },
-];
 
 const REQUEST_HEADERS = {
   "content-type": "application/x-www-form-urlencoded",
   "user-agent": "wdta-mobile-results/0.1 daily-cache contact:github-actions",
 };
 
-export async function fetchCachedResults(): Promise<CachedResults> {
+// ---------------------------------------------------------------------------
+// Discovery
+// ---------------------------------------------------------------------------
+
+/** Fetch the list of competitions (daytime options) from the TROLS landing page. */
+export async function fetchCompetitionOptions(): Promise<Array<{ code: string; name: string }>> {
+  const html = await getResultsPage();
+  return parseCompetitionOptions(html).map((opt) => ({ code: opt.code, name: opt.label }));
+}
+
+/** Fetch all section options for a given competition code. */
+export async function fetchSectionOptions(
+  competitionCode: string,
+): Promise<Array<{ code: string; name: string }>> {
+  const html = await postResultsPage({ which: "0", style: "", daytime: competitionCode });
+  return parseSectionOptions(html).map((opt) => ({ code: opt.code, name: opt.label }));
+}
+
+// ---------------------------------------------------------------------------
+// Single-section results
+// ---------------------------------------------------------------------------
+
+/**
+ * Fetch full results (rounds, ladder, match details) for a single section.
+ * Returns a CachedResults with exactly one entry in sections[].
+ */
+export async function fetchSingleSectionResults(
+  competitionCode: string,
+  sectionCode: string,
+): Promise<CachedResults> {
+  // Competition metadata (name, resultsLoadedAt)
   const competitionHtml = await postResultsPage({
     which: "0",
     style: "",
-    daytime: COMPETITION_CODE,
+    daytime: competitionCode,
   });
-  const options = parseSectionOptions(competitionHtml);
-  const resolvedSections = TARGET_SECTIONS.map((target) => {
-    const option = options.find((candidate) => candidate.label === target.label);
-    return {
-      label: target.label,
-      code: option?.code ?? target.fallbackCode,
-    };
-  });
-
-  const sections = [];
+  const competitionName = parseCompetitionName(competitionHtml);
   let latestResultsLoadedAt = parseResultsLoadedAt(competitionHtml);
-  let latestLaddersLoadedAt: string | undefined;
 
-  for (const section of resolvedSections) {
-    const html = await postResultsPage({
-      which: "1",
-      style: "",
-      daytime: COMPETITION_CODE,
-      section: section.code,
-    });
-    latestResultsLoadedAt = parseResultsLoadedAt(html) ?? latestResultsLoadedAt;
-    const sectionResults = parseSectionResults(html, section.code);
-    const ladderHtml = await getLadderPage(section.code);
-    latestLaddersLoadedAt = parseLaddersLoadedAt(ladderHtml) ?? latestLaddersLoadedAt;
-    sectionResults.ladder = parseLadderEntries(ladderHtml, section.code);
-    await attachMatchDetails(sectionResults);
-    sections.push(sectionResults);
-  }
+  // Section results
+  const sectionHtml = await postResultsPage({
+    which: "1",
+    style: "",
+    daytime: competitionCode,
+    section: sectionCode,
+  });
+  latestResultsLoadedAt = parseResultsLoadedAt(sectionHtml) ?? latestResultsLoadedAt;
+  const sectionResults = parseSectionResults(sectionHtml, sectionCode);
+
+  // Ladder
+  const ladderHtml = await getLadderPage(sectionCode);
+  const laddersLoadedAt = parseLaddersLoadedAt(ladderHtml);
+  sectionResults.ladder = parseLadderEntries(ladderHtml, sectionCode);
+
+  // Match details (the slow part)
+  await attachMatchDetails(sectionResults);
 
   return {
     generatedAt: new Date().toISOString(),
     source: {
       url: SOURCE_URL,
-      competitionCode: COMPETITION_CODE,
-      competitionName: parseCompetitionName(competitionHtml) ?? "Saturday AM",
+      competitionCode,
+      competitionName: competitionName ?? competitionCode,
       resultsLoadedAt: latestResultsLoadedAt,
-      laddersLoadedAt: latestLaddersLoadedAt,
+      laddersLoadedAt,
     },
-    sections,
+    sections: [sectionResults],
   };
 }
+
+/**
+ * Derive competition code from section code as a last-resort fallback.
+ * TROLS codes look like "AA016" where "AA" is the competition prefix.
+ * This is a heuristic and may not always be correct.
+ */
+export function deriveCompetitionCode(sectionCode: string): string {
+  return sectionCode.replace(/\d+$/, "") || sectionCode;
+}
+
+// ---------------------------------------------------------------------------
+// Internal helpers
+// ---------------------------------------------------------------------------
 
 async function attachMatchDetails(section: SectionResults) {
   for (const round of section.rounds) {
@@ -107,7 +138,7 @@ async function getLadderPage(sectionCode: string): Promise<string> {
   const url = new URL(LADDERS_URL);
   url.searchParams.set("which", "1");
   url.searchParams.set("style", "");
-  url.searchParams.set("daytime", COMPETITION_CODE);
+  url.searchParams.set("daytime", deriveCompetitionCode(sectionCode));
   url.searchParams.set("section", sectionCode);
   const response = await fetch(url, {
     headers: REQUEST_HEADERS,
@@ -118,6 +149,19 @@ async function getLadderPage(sectionCode: string): Promise<string> {
     throw new Error(
       `WDTA ladder request failed for ${sectionCode} with ${response.status} ${response.statusText}`,
     );
+  }
+
+  return response.text();
+}
+
+async function getResultsPage(): Promise<string> {
+  const response = await fetch(SOURCE_URL, {
+    headers: { "user-agent": REQUEST_HEADERS["user-agent"] },
+    cache: "no-store",
+  });
+
+  if (!response.ok) {
+    throw new Error(`WDTA landing page request failed with ${response.status} ${response.statusText}`);
   }
 
   return response.text();

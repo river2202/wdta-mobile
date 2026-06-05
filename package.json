@@ -9,9 +9,10 @@
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit -p tsconfig.typecheck.json",
-    "refresh:data": "tsx scripts/refresh-wdta-results.ts"
+    "db:migrate": "tsx --env-file=.env.local scripts/db-migrate.ts"
   },
   "dependencies": {
+    "@vercel/postgres": "^0.10.0",
     "cheerio": "^1.2.0",
     "next": "^16.2.6",
     "react": "^19.2.6",

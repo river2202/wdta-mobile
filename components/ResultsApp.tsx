@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 
 import type {
   CachedResults,
@@ -14,11 +14,14 @@ import type {
   SectionResults,
 } from "@/lib/wdta/types";
 
-const MIN_REFRESH_AGE_MS = 60 * 60 * 1000;
+const AUTO_REFRESH_AGE_MS = 2 * 60 * 60 * 1000; // auto-refresh when cache older than 2h
 const ORIGINAL_RESULTS_URL = "https://www.trols.org.au/wdta/results.php";
 const ORIGINAL_LADDERS_URL = "https://www.trols.org.au/wdta/ladders.php";
 const SELECTED_SECTION_STORAGE_KEY = "wdta-mobile-section";
 const SEEN_RESULTS_STORAGE_KEY = "wdta-mobile-seen-results";
+// Set NEXT_PUBLIC_BUYMEACOFFEE_URL in your env / Vercel dashboard to your own page.
+const BUY_ME_A_COFFEE_URL =
+  process.env.NEXT_PUBLIC_BUYMEACOFFEE_URL || "https://www.buymeacoffee.com/yourhandle";
 
 type RefreshResponse = {
   status: "refreshed" | "too-fresh" | "error";
@@ -34,33 +37,55 @@ type NewResultsNotice = {
 
 export function ResultsApp({
   initialResults,
-  initialSectionCode,
+  sectionCode,
 }: {
   initialResults: CachedResults;
-  initialSectionCode?: string;
+  /** The section code used to call the correct refresh API endpoint. */
+  sectionCode?: string;
 }) {
-  const initialSelectedSectionCode = getInitialSectionCode(initialResults, initialSectionCode);
   const [results, setResults] = useState(initialResults);
-  const [selectedSectionCode, setSelectedSectionCode] = useState(initialSelectedSectionCode);
-  const [now, setNow] = useState(() => Date.now());
   const [refreshMessage, setRefreshMessage] = useState("");
-  const [isRefreshing, setIsRefreshing] = useState(false);
+  // Start in "refreshing" state when the cache is already older than 2 hours.
+  const [isRefreshing, setIsRefreshing] = useState(() => isCacheStale(initialResults.generatedAt));
   const [newResultsNotice, setNewResultsNotice] = useState<NewResultsNotice | null>(null);
   const currentResultsStamp = getResultsUpdateStamp(results);
 
+  // Auto-refresh: when the page opens, if the cache is older than 2 hours,
+  // silently refresh the database in the background and update the view.
   useEffect(() => {
-    const interval = window.setInterval(() => setNow(Date.now()), 30_000);
-    return () => window.clearInterval(interval);
-  }, []);
-
-  useEffect(() => {
-    if (
-      initialSectionCode &&
-      results.sections.some((section) => section.sectionCode === initialSectionCode)
-    ) {
-      rememberSelectedSection(initialSectionCode);
+    if (!isCacheStale(initialResults.generatedAt)) {
+      return;
     }
-  }, [initialSectionCode, results.sections]);
+
+    let cancelled = false;
+    const refreshUrl = sectionCode
+      ? `/api/sections/${encodeURIComponent(sectionCode)}/refresh`
+      : "/api/results/refresh";
+
+    (async () => {
+      try {
+        const response = await fetch(refreshUrl, { method: "GET", cache: "no-store" });
+        const payload = (await response.json()) as RefreshResponse;
+        if (cancelled) return;
+
+        if (payload.results) {
+          setResults(payload.results);
+        }
+        if (response.ok && payload.status === "refreshed") {
+          setRefreshMessage("Updated just now");
+        }
+      } catch {
+        // Background refresh failed — keep showing the cached data silently.
+      } finally {
+        if (!cancelled) setIsRefreshing(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     if (!currentResultsStamp) {
@@ -90,30 +115,21 @@ export function ResultsApp({
     return () => window.clearTimeout(timer);
   }, [currentResultsStamp]);
 
-  const selectedSection =
-    results.sections.find((section) => section.sectionCode === selectedSectionCode) ??
-    results.sections[0];
+  const selectedSection = results.sections[0];
 
-  const refreshState = useMemo(() => getRefreshState(results.generatedAt, now), [results, now]);
   const originalResultsUrl = selectedSection
     ? buildOriginalResultsUrl(selectedSection.sectionCode)
     : ORIGINAL_RESULTS_URL;
 
-  function selectSection(sectionCode: string) {
-    setSelectedSectionCode(sectionCode);
-    rememberSelectedSection(sectionCode);
-    window.history.replaceState(null, "", `/?section=${sectionCode}`);
-  }
-
-  function handleRefresh() {
-    if (!refreshState.canRefresh || isRefreshing) {
-      return;
+  function handleChangeTeam() {
+    // Clear saved selection so the landing page shows the selector
+    try {
+      window.localStorage?.removeItem(SELECTED_SECTION_STORAGE_KEY);
+    } catch {
+      // ignore
     }
-
-    setRefreshMessage("");
-    setIsRefreshing(true);
-
-    void refreshResults().finally(() => setIsRefreshing(false));
+    document.cookie = `${SELECTED_SECTION_STORAGE_KEY}=; Max-Age=0; Path=/; SameSite=Lax`;
+    window.location.href = "/";
   }
 
   function acknowledgeNewResults() {
@@ -124,38 +140,40 @@ export function ResultsApp({
     setNewResultsNotice(null);
   }
 
-  async function refreshResults() {
-    try {
-      const response = await fetch("/api/results/refresh", {
-        method: "GET",
-        cache: "no-store",
-      });
-      const payload = (await response.json()) as RefreshResponse;
-
-      if (payload.results) {
-        setResults(payload.results);
-        setNow(Date.now());
-      }
-
-      if (response.ok && payload.status === "refreshed") {
-        setRefreshMessage("Updated just now");
-        return;
-      }
-
-      setRefreshMessage(payload.message || "Cache is still fresh");
-    } catch {
-      setRefreshMessage("Refresh failed");
-    }
-  }
-
   return (
     <main className="page-shell">
       <header className="topbar">
         <div className="brand-row">
           <Image src="/tennis-mark.svg" alt="" className="brand-mark" width={48} height={48} />
-          <div>
+          <div className="brand-text">
             <p className="eyebrow">{results.source.competitionName}</p>
-            <h1>Girls S/D Rubbers</h1>
+            <div className="title-row">
+              <h1>{selectedSection?.sectionName ?? "Results"}</h1>
+              <button
+                className="change-section-btn"
+                type="button"
+                onClick={handleChangeTeam}
+                aria-label="Change section"
+                title="Change section"
+              >
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M7 4 3 8l4 4" />
+                  <path d="M3 8h14" />
+                  <path d="m17 20 4-4-4-4" />
+                  <path d="M21 16H7" />
+                </svg>
+              </button>
+            </div>
           </div>
         </div>
         <div className="header-actions">
@@ -167,21 +185,23 @@ export function ResultsApp({
             <a className="original-link" href={originalResultsUrl}>
               Original WDTA
             </a>
-            <button
-              className="refresh-button"
-              type="button"
-              disabled={!refreshState.canRefresh || isRefreshing}
-              onClick={handleRefresh}
+            <a
+              className="bmc-icon"
+              href={BUY_ME_A_COFFEE_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Buy me a coffee"
+              title="Buy me a coffee"
             >
-              {isRefreshing
-                ? "Refreshing"
-                : refreshState.canRefresh
-                  ? "Refresh"
-                  : `Refresh in ${formatDuration(refreshState.remainingMs)}`}
-            </button>
+              <CoffeeIcon />
+            </a>
           </div>
         </div>
-        {refreshMessage ? <p className="refresh-status">{refreshMessage}</p> : null}
+        {isRefreshing ? (
+          <p className="refresh-status">Updating…</p>
+        ) : refreshMessage ? (
+          <p className="refresh-status">{refreshMessage}</p>
+        ) : null}
         {newResultsNotice ? (
           <section className="new-results-banner" aria-label="New results">
             <div>
@@ -198,19 +218,6 @@ export function ResultsApp({
         ) : null}
       </header>
 
-      <nav className="section-tabs" aria-label="Sections">
-        {results.sections.map((section) => (
-          <button
-            key={section.sectionCode}
-            className={section.sectionCode === selectedSection?.sectionCode ? "active" : ""}
-            type="button"
-            onClick={() => selectSection(section.sectionCode)}
-          >
-            {section.sectionName.replace("Girls S/D Rubbers ", "")}
-          </button>
-        ))}
-      </nav>
-
       {selectedSection ? (
         <SectionView section={selectedSection} />
       ) : (
@@ -219,6 +226,19 @@ export function ResultsApp({
           <p>Run `npm run refresh:data` to create the first WDTA cache.</p>
         </section>
       )}
+
+      <footer className="page-footer">
+        <a
+          className="bmc-button"
+          href={BUY_ME_A_COFFEE_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <CoffeeIcon />
+          <span>Buy me a coffee</span>
+        </a>
+        <p className="footer-note">Made for tennis parents · not affiliated with WDTA/TROLS</p>
+      </footer>
     </main>
   );
 }
@@ -279,13 +299,6 @@ function LadderPanel({
               <span>%</span>
               <strong>{entry.percentage.toFixed(2)}</strong>
             </div>
-            <a
-              className="team-source-link"
-              href={buildOriginalClubLadderUrl(entry.team)}
-              aria-label={`Open original ladder for ${entry.team}`}
-            >
-              Team ladder
-            </a>
           </div>
         ))}
       </div>
@@ -480,18 +493,34 @@ function Stat({ label, home, away }: { label: string; home: number; away: number
   );
 }
 
-function getRefreshState(generatedAt: string, now: number) {
+function isCacheStale(generatedAt: string) {
   const generatedTime = Date.parse(generatedAt);
-
   if (Number.isNaN(generatedTime)) {
-    return { canRefresh: true, remainingMs: 0 };
+    return false;
   }
+  return Date.now() - generatedTime >= AUTO_REFRESH_AGE_MS;
+}
 
-  const remainingMs = Math.max(0, generatedTime + MIN_REFRESH_AGE_MS - now);
-  return {
-    canRefresh: remainingMs === 0,
-    remainingMs,
-  };
+function CoffeeIcon() {
+  return (
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M17 8h1a4 4 0 1 1 0 8h-1" />
+      <path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z" />
+      <line x1="6" y1="2" x2="6" y2="4" />
+      <line x1="10" y1="2" x2="10" y2="4" />
+      <line x1="14" y1="2" x2="14" y2="4" />
+    </svg>
+  );
 }
 
 function buildOriginalResultsUrl(sectionCode: string) {
@@ -512,18 +541,6 @@ function buildOriginalLadderUrl(sectionCode: string) {
   return url.toString();
 }
 
-function buildOriginalClubLadderUrl(team: string) {
-  const url = new URL(ORIGINAL_LADDERS_URL);
-  url.searchParams.set("which", "2");
-  url.searchParams.set("style", "");
-  url.searchParams.set("daytime", "AA");
-  url.searchParams.set("club", team);
-  return url.toString();
-}
-
-function rememberSelectedSection(sectionCode: string) {
-  rememberBrowserValue(SELECTED_SECTION_STORAGE_KEY, sectionCode);
-}
 
 function rememberBrowserValue(key: string, value: string) {
   try {
@@ -566,14 +583,6 @@ function readCookieValue(key: string) {
   }
 }
 
-function getInitialSectionCode(results: CachedResults, sectionCode?: string) {
-  if (sectionCode && results.sections.some((section) => section.sectionCode === sectionCode)) {
-    return sectionCode;
-  }
-
-  return results.sections[0]?.sectionCode;
-}
-
 function getResultsUpdateStamp(results: CachedResults) {
   return results.source.resultsLoadedAt || results.generatedAt;
 }
@@ -588,17 +597,6 @@ function formatDateTime(value: string) {
     timeStyle: "short",
     timeZone: "Australia/Melbourne",
   }).format(new Date(value));
-}
-
-function formatDuration(value: number) {
-  const minutes = Math.max(1, Math.ceil(value / 60_000));
-  if (minutes < 60) {
-    return `${minutes}m`;
-  }
-
-  const hours = Math.floor(minutes / 60);
-  const remainder = minutes % 60;
-  return remainder === 0 ? `${hours}h` : `${hours}h ${remainder}m`;
 }
 
 function formatNumber(value: number) {

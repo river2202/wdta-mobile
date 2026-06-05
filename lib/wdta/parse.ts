@@ -59,6 +59,23 @@ export function parseSectionOptions(html: string): SectionOption[] {
     .filter((option) => option.code && option.label);
 }
 
+export type CompetitionOption = {
+  code: string;
+  label: string;
+};
+
+export function parseCompetitionOptions(html: string): CompetitionOption[] {
+  const $ = cheerio.load(html);
+
+  return $("#daytime option")
+    .toArray()
+    .map((element) => ({
+      code: String($(element).attr("value") ?? ""),
+      label: cleanText($(element).text()),
+    }))
+    .filter((option) => option.code && option.label);
+}
+
 export function parseSectionResults(
   html: string,
   sectionCode: string,
