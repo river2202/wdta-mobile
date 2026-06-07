@@ -46,21 +46,21 @@ export function ResultsApp({
   const [results, setResults] = useState(initialResults);
   const [refreshMessage, setRefreshMessage] = useState("");
   // Start in "refreshing" state when the cache is already older than 2 hours.
-  const [isRefreshing, setIsRefreshing] = useState(() => isCacheStale(initialResults.generatedAt));
+  const [isRefreshing, setIsRefreshing] = useState(
+    () => Boolean(sectionCode) && isCacheStale(initialResults.generatedAt),
+  );
   const [newResultsNotice, setNewResultsNotice] = useState<NewResultsNotice | null>(null);
   const currentResultsStamp = getResultsUpdateStamp(results);
 
   // Auto-refresh: when the page opens, if the cache is older than 2 hours,
   // silently refresh the database in the background and update the view.
   useEffect(() => {
-    if (!isCacheStale(initialResults.generatedAt)) {
+    if (!sectionCode || !isCacheStale(initialResults.generatedAt)) {
       return;
     }
 
     let cancelled = false;
-    const refreshUrl = sectionCode
-      ? `/api/sections/${encodeURIComponent(sectionCode)}/refresh`
-      : "/api/results/refresh";
+    const refreshUrl = `/api/sections/${encodeURIComponent(sectionCode)}/refresh`;
 
     (async () => {
       try {
