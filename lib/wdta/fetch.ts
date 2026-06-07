@@ -19,6 +19,42 @@ const REQUEST_HEADERS = {
   "user-agent": "wdta-mobile-results/0.1 daily-cache contact:github-actions",
 };
 
+// Per-request timeout so a single slow TROLS response can't stall the whole
+// section fetch (and trip a serverless function timeout).
+const FETCH_TIMEOUT_MS = 8000;
+// How many match-detail popups to fetch in parallel. Keeps fetching fast while
+// staying gentle on the source site.
+const DETAIL_CONCURRENCY = 5;
+
+async function fetchWithTimeout(
+  url: string | URL,
+  init: RequestInit,
+  timeoutMs = FETCH_TIMEOUT_MS,
+): Promise<Response> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(url, { ...init, signal: controller.signal });
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+async function mapWithConcurrency<T>(
+  items: T[],
+  limit: number,
+  worker: (item: T) => Promise<void>,
+): Promise<void> {
+  let cursor = 0;
+  const runners = Array.from({ length: Math.min(limit, items.length) }, async () => {
+    while (cursor < items.length) {
+      const index = cursor++;
+      await worker(items[index]);
+    }
+  });
+  await Promise.all(runners);
+}
+
 // ---------------------------------------------------------------------------
 // Discovery
 // ---------------------------------------------------------------------------
@@ -103,13 +139,19 @@ export function deriveCompetitionCode(sectionCode: string): string {
 // ---------------------------------------------------------------------------
 
 async function attachMatchDetails(section: SectionResults) {
-  for (const round of section.rounds) {
-    for (const match of round.matches) {
-      if (match.status === "played" && match.matchId) {
-        match.details = await fetchMatchDetails(match);
-      }
+  const playedMatches = section.rounds
+    .flatMap((round) => round.matches)
+    .filter((match) => match.status === "played" && match.matchId);
+
+  await mapWithConcurrency(playedMatches, DETAIL_CONCURRENCY, async (match) => {
+    try {
+      match.details = await fetchMatchDetails(match);
+    } catch (error) {
+      // A single slow/broken popup shouldn't fail the whole section — just skip
+      // its details. The scoreline is still shown from the section table.
+      console.warn(`[wdta] match detail failed for ${match.matchId}:`, error);
     }
-  }
+  });
 }
 
 async function fetchMatchDetails(match: MatchResult) {
@@ -120,7 +162,7 @@ async function fetchMatchDetails(match: MatchResult) {
   const url = new URL(MATCH_POPUP_URL);
   url.searchParams.set("matchid", match.matchId);
   url.searchParams.set("seasonid", "");
-  const response = await fetch(url, {
+  const response = await fetchWithTimeout(url, {
     headers: REQUEST_HEADERS,
     cache: "no-store",
   });
@@ -140,7 +182,7 @@ async function getLadderPage(sectionCode: string): Promise<string> {
   url.searchParams.set("style", "");
   url.searchParams.set("daytime", deriveCompetitionCode(sectionCode));
   url.searchParams.set("section", sectionCode);
-  const response = await fetch(url, {
+  const response = await fetchWithTimeout(url, {
     headers: REQUEST_HEADERS,
     cache: "no-store",
   });
@@ -155,7 +197,7 @@ async function getLadderPage(sectionCode: string): Promise<string> {
 }
 
 async function getResultsPage(): Promise<string> {
-  const response = await fetch(SOURCE_URL, {
+  const response = await fetchWithTimeout(SOURCE_URL, {
     headers: { "user-agent": REQUEST_HEADERS["user-agent"] },
     cache: "no-store",
   });
@@ -169,7 +211,7 @@ async function getResultsPage(): Promise<string> {
 
 async function postResultsPage(fields: Record<string, string>): Promise<string> {
   const body = new URLSearchParams(fields);
-  const response = await fetch(SOURCE_URL, {
+  const response = await fetchWithTimeout(SOURCE_URL, {
     method: "POST",
     headers: REQUEST_HEADERS,
     body,

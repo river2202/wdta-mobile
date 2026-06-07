@@ -5,6 +5,7 @@ import { deriveCompetitionCode, fetchSingleSectionResults } from "@/lib/wdta/fet
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
+export const maxDuration = 60; // on-demand fetch of one section can take a few seconds
 
 const CACHE_MAX_AGE_MS = 24 * 60 * 60 * 1000; // 24 hours
 

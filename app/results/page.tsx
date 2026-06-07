@@ -2,13 +2,10 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { ResultsApp } from "@/components/ResultsApp";
-import { SectionLoadError } from "@/components/SectionLoadError";
-import { getSectionCache, getSection, upsertSection, upsertSectionCache } from "@/lib/db/queries";
-import { deriveCompetitionCode, fetchSingleSectionResults } from "@/lib/wdta/fetch";
-import type { CachedResults } from "@/lib/wdta/types";
+import { SectionLoader } from "@/components/SectionLoader";
+import { getSectionCache } from "@/lib/db/queries";
 
 const SECTION_COOKIE_NAME = "wdta-mobile-section";
-const CACHE_MAX_AGE_MS = 24 * 60 * 60 * 1000;
 
 type PageProps = {
   searchParams?: Promise<{ section?: string }>;
@@ -17,59 +14,29 @@ type PageProps = {
 export default async function ResultsPage({ searchParams }: PageProps) {
   const params = await searchParams;
   const cookieStore = await cookies();
-  const sectionCode =
-    params?.section || cookieStore.get(SECTION_COOKIE_NAME)?.value;
+  const sectionCode = params?.section || cookieStore.get(SECTION_COOKIE_NAME)?.value;
 
   if (!sectionCode) {
     redirect("/");
   }
 
-  const results = await loadResults(sectionCode);
-
-  if (!results) {
-    // Do NOT redirect to "/" here: the home page would redirect straight back
-    // (cookie is still set), causing an infinite reload loop. Instead render a
-    // recovery screen that clears the saved selection.
-    return <SectionLoadError />;
-  }
-
-  return <ResultsApp initialResults={results} sectionCode={sectionCode} />;
-}
-
-async function loadResults(sectionCode: string): Promise<CachedResults | null> {
-  let staleCache: CachedResults | null = null;
-
+  // Read-only DB lookup — never fetch from TROLS during render (that work is
+  // done by the cron and the on-demand API route, so the page can't time out).
+  let cached;
   try {
-    const cached = await getSectionCache(sectionCode);
-    const now = Date.now();
-    const generatedTime = cached ? Date.parse(cached.generated_at) : NaN;
-    const isFresh = !Number.isNaN(generatedTime) && now - generatedTime < CACHE_MAX_AGE_MS;
-
-    if (cached) {
-      staleCache = cached.results_json;
-      if (isFresh) {
-        return cached.results_json;
-      }
-    }
-
-    // Stale or missing — fetch from TROLS
-    const section = await getSection(sectionCode);
-    const competitionCode = section?.competition_code ?? deriveCompetitionCode(sectionCode);
-
-    const fresh = await fetchSingleSectionResults(competitionCode, sectionCode);
-
-    // Update indexes
-    await upsertSection(
-      sectionCode,
-      fresh.sections[0]?.sectionName ?? sectionCode,
-      competitionCode,
-    );
-    await upsertSectionCache(sectionCode, fresh);
-
-    return fresh;
+    cached = await getSectionCache(sectionCode);
   } catch (error) {
-    console.error(`[results] Failed to load ${sectionCode}:`, error);
-    // Serve stale data rather than showing an error, if we have any cached copy.
-    return staleCache;
+    console.error(`[results] DB read failed for ${sectionCode}:`, error);
+    cached = null;
   }
+
+  // Serve whatever we have (fresh or stale). ResultsApp refreshes in the
+  // background when the cache is older than 2h.
+  if (cached) {
+    return <ResultsApp initialResults={cached.results_json} sectionCode={sectionCode} />;
+  }
+
+  // No cache yet — let the client fetch it on demand (with a spinner and
+  // retry/back options), so the first visit doesn't block page render.
+  return <SectionLoader sectionCode={sectionCode} />;
 }

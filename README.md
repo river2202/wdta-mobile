@@ -2,7 +2,9 @@
 
 Mobile-friendly Next.js page for Waverley Tennis WDTA Saturday morning Girls S/D Rubbers results.
 
-The original WDTA/TROLS results page is table-heavy and hard to read on a phone. This app fetches the relevant WDTA sections, stores a daily JSON cache, and renders the results as mobile-first round and match cards.
+The original WDTA/TROLS results page is table-heavy and hard to read on a phone. This app fetches the relevant WDTA sections, caches them in a database, and renders the results as mobile-first round and match cards.
+
+> **Data & deployment:** the app now uses a Postgres (Neon) backend with on-demand + scheduled refresh. See **[docs/data-refresh.md](docs/data-refresh.md)** for the current architecture and how to deploy the cron on Vercel + Neon free tier. Some sections below describe the original static-JSON MVP and are kept for history.
 
 ## Status
 

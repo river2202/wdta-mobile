@@ -124,16 +124,26 @@ export async function upsertSectionCache(
   `;
 }
 
-/** Returns all sections whose cache is older than maxAgeMs milliseconds. */
-export async function getStaleSectionCodes(maxAgeMs: number): Promise<string[]> {
+export type StaleSection = {
+  code: string;
+  competition_code: string;
+};
+
+/**
+ * Returns up to `limit` sections whose cache is older than maxAgeMs (or never
+ * cached), stalest first (never-cached before oldest). Used by the cron to
+ * refresh a bounded, staggered batch each run.
+ */
+export async function getStaleSections(maxAgeMs: number, limit: number): Promise<StaleSection[]> {
   const cutoff = new Date(Date.now() - maxAgeMs).toISOString();
-  const result = await sql<{ code: string }>`
-    SELECT si.code
+  const result = await sql<StaleSection>`
+    SELECT si.code, si.competition_code
     FROM section_index si
     LEFT JOIN section_cache sc ON sc.section_code = si.code
     WHERE sc.section_code IS NULL
        OR sc.refreshed_at < ${cutoff}::timestamptz
-    ORDER BY si.code
+    ORDER BY sc.refreshed_at ASC NULLS FIRST
+    LIMIT ${limit}
   `;
-  return result.rows.map((r) => r.code);
+  return result.rows;
 }
