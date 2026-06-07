@@ -20,8 +20,8 @@ const ORIGINAL_LADDERS_URL = "https://www.trols.org.au/wdta/ladders.php";
 const SELECTED_SECTION_STORAGE_KEY = "wdta-mobile-section";
 const SEEN_RESULTS_STORAGE_KEY = "wdta-mobile-seen-results";
 // Set NEXT_PUBLIC_BUYMEACOFFEE_URL in your env / Vercel dashboard to your own page.
-const BUY_ME_A_COFFEE_URL =
-  process.env.NEXT_PUBLIC_BUYMEACOFFEE_URL || "https://www.buymeacoffee.com/yourhandle";
+// When it's unset, the donate buttons are hidden entirely.
+const BUY_ME_A_COFFEE_URL = process.env.NEXT_PUBLIC_BUYMEACOFFEE_URL;
 
 type RefreshResponse = {
   status: "refreshed" | "too-fresh" | "error";
@@ -185,16 +185,18 @@ export function ResultsApp({
             <a className="original-link" href={originalResultsUrl}>
               Original WDTA
             </a>
-            <a
-              className="bmc-icon"
-              href={BUY_ME_A_COFFEE_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="Buy me a coffee"
-              title="Buy me a coffee"
-            >
-              <CoffeeIcon />
-            </a>
+            {BUY_ME_A_COFFEE_URL ? (
+              <a
+                className="bmc-icon"
+                href={BUY_ME_A_COFFEE_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Buy me a coffee"
+                title="Buy me a coffee"
+              >
+                <CoffeeIcon />
+              </a>
+            ) : null}
           </div>
         </div>
         {isRefreshing ? (
@@ -228,15 +230,17 @@ export function ResultsApp({
       )}
 
       <footer className="page-footer">
-        <a
-          className="bmc-button"
-          href={BUY_ME_A_COFFEE_URL}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <CoffeeIcon />
-          <span>Buy me a coffee</span>
-        </a>
+        {BUY_ME_A_COFFEE_URL ? (
+          <a
+            className="bmc-button"
+            href={BUY_ME_A_COFFEE_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <CoffeeIcon />
+            <span>Buy me a coffee</span>
+          </a>
+        ) : null}
         <p className="footer-note">Made for tennis parents · not affiliated with WDTA/TROLS</p>
       </footer>
     </main>
