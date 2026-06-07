@@ -14,9 +14,10 @@ const PER_RUN_CAP = 80;
 // Process this many sections in parallel. Each section itself fetches match
 // details with DETAIL_CONCURRENCY(=5), so peak TROLS requests ≈ this × 5.
 const SECTION_CONCURRENCY = 3;
-// Stop starting new sections past this wall-clock budget, leaving headroom
-// under maxDuration so the function returns cleanly.
-const TIME_BUDGET_MS = 50 * 1000;
+// Stop starting new sections past this wall-clock budget. Headroom under
+// maxDuration(60s) absorbs the in-flight sections still draining (a single
+// section can take ~10s+ if its sequential pre-fetches hit the 8s timeout).
+const TIME_BUDGET_MS = 45 * 1000;
 
 type RefreshSummary = {
   sectionCode: string;
