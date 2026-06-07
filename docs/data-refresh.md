@@ -1,151 +1,142 @@
-# Data fetching & refresh
+# 数据抓取与刷新
 
-How WDTA results get from the TROLS source site into the app, and how to deploy
-the daily refresh on **Vercel + Neon (free tier)**.
+说明 WDTA 赛果如何从 TROLS 源站进入应用，以及如何在 **Vercel + Neon（免费档）** 上
+部署每日刷新。
 
 ---
 
-## 1. Overview
+## 1. 总览
 
-The app never talks to a database from the browser and never scrapes TROLS
-during page render. Data flows through three layers:
+应用从不在浏览器里直接连数据库，也从不在页面渲染时抓取 TROLS。数据流经三层：
 
 ```
 TROLS (trols.org.au/wdta)
-  │  fetch + parse (lib/wdta/*)
+  │  fetch + parse（lib/wdta/*）
   ▼
-Neon Postgres  ──read──►  Next.js pages (/, /results)
+Neon Postgres  ──只读──►  Next.js 页面（/ , /results）
   ▲
-  │  writes happen from server-only code:
-  ├─ on-demand   : GET /api/sections/[code]/results   (first visit to a section)
-  ├─ background  : GET /api/sections/[code]/refresh   (client triggers when cache > 2h)
-  └─ scheduled   : GET /api/cron/refresh-all          (Vercel Cron, daily, batched)
+  │  写入只发生在服务端代码里：
+  ├─ 按需   ：GET /api/sections/[code]/results   （首次访问某 section）
+  ├─ 后台   ：GET /api/sections/[code]/refresh   （缓存 > 2h 时客户端触发）
+  └─ 定时   ：GET /api/cron/refresh-all          （Vercel Cron，每日，分批）
 ```
 
-`/results` is a **read-only** DB lookup, so it can never time out. All TROLS
-fetching happens inside API routes (which have their own time budget) or the
-cron, never in the page render path.
+`/results` 是**只读** DB 查询，因此永远不会超时。所有 TROLS 抓取都发生在 API 路由
+（有各自的时间预算）或 cron 里，绝不在页面渲染路径上。
 
 ---
 
-## 2. The scraping logic (`lib/wdta`)
+## 2. 抓取逻辑（`lib/wdta`）
 
-### Source endpoints
+### 源端点
 
-| Purpose | Request |
-|---------|---------|
-| Competition list | `GET results.php` → parse `#daytime` options |
-| Section list | `POST results.php` `which=0&daytime=<comp>` → parse `#section` options |
-| Section results | `POST results.php` `which=1&daytime=<comp>&section=<code>` → results table |
-| Ladder | `GET ladders.php?which=1&daytime=<comp>&section=<code>` |
-| Match details | `GET match_popup.php?matchid=<id>` (one per played match) |
+| 用途 | 请求 |
+|------|------|
+| 竞赛列表 | `GET results.php` → 解析 `#daytime` 选项 |
+| section 列表 | `POST results.php` `which=0&daytime=<comp>` → 解析 `#section` 选项 |
+| section 赛果 | `POST results.php` `which=1&daytime=<comp>&section=<code>` → 赛果表 |
+| 积分榜 | `GET ladders.php?which=1&daytime=<comp>&section=<code>` |
+| 比赛详情 | `GET match_popup.php?matchid=<id>`（每场已打的比赛一次） |
 
-Parsing is done with Cheerio in `lib/wdta/parse.ts`. The shapes are defined in
-`lib/wdta/types.ts` (`CachedResults` → `SectionResults` → `RoundResult` →
-`MatchResult` + `LadderEntry`).
+解析用 Cheerio，在 `lib/wdta/parse.ts`。数据结构定义在 `lib/wdta/types.ts`
+（`CachedResults` → `SectionResults` → `RoundResult` → `MatchResult` + `LadderEntry`）。
 
-### Key functions (`lib/wdta/fetch.ts`)
+### 关键函数（`lib/wdta/fetch.ts`）
 
-- `fetchCompetitionOptions()` — discover all competitions.
-- `fetchSectionOptions(competitionCode)` — discover all sections in a competition.
-- `fetchSingleSectionResults(competitionCode, sectionCode)` — the workhorse:
-  fetches the competition meta, the section results table, the ladder, then every
-  played match's detail popup, and returns a one-section `CachedResults`.
+- `fetchCompetitionOptions()` — 发现所有 competition。
+- `fetchSectionOptions(competitionCode)` — 发现某 competition 下的所有 section。
+- `fetchSingleSectionResults(competitionCode, sectionCode)` — 核心：抓取竞赛元信息、
+  section 赛果表、积分榜，再抓每一场已打比赛的详情弹窗，返回单 section 的 `CachedResults`。
 
-### Robustness (why it doesn't time out or get rate-limited)
+### 健壮性（为什么不会超时 / 被限流）
 
-These guards live in `lib/wdta/fetch.ts`:
+以下保障都在 `lib/wdta/fetch.ts`：
 
-| Guard | Value | Why |
-|-------|-------|-----|
-| Per-request timeout | `FETCH_TIMEOUT_MS = 8000` | One slow TROLS response can't stall the whole job (`fetchWithTimeout` uses `AbortController`). |
-| Match-detail concurrency | `DETAIL_CONCURRENCY = 5` | Fetch popups 5 at a time — fast, but gentle on the source (`mapWithConcurrency`). |
-| Non-fatal detail failures | — | A single broken popup is skipped; the scoreline still shows from the section table. |
+| 保障 | 取值 | 原因 |
+|------|------|------|
+| 单请求超时 | `FETCH_TIMEOUT_MS = 8000` | 单个慢响应不会拖垮整个任务（`fetchWithTimeout` 用 `AbortController`）。 |
+| 详情并发上限 | `DETAIL_CONCURRENCY = 5` | 一次抓 5 个弹窗——既快又不至于压垮源站（`mapWithConcurrency`）。 |
+| 单场失败不致命 | — | 单个坏弹窗会被跳过；比分仍能从赛果表显示。 |
 
-A section typically has 20–45 match popups; with concurrency 5 + an 8s ceiling,
-one section refreshes in a few seconds.
+一个 section 通常有 20–45 个比赛弹窗；并发 5 + 8s 上限下，单 section 几秒内即可刷新完。
 
 ---
 
-## 3. Freshness layers
+## 3. 三层新鲜度
 
-| Layer | Trigger | Endpoint | Freshness rule |
-|-------|---------|----------|----------------|
-| On-demand | First visit to an uncached section | `GET /api/sections/[code]/results` | Serves cache if < 24h, else fetches & caches |
-| Background | `ResultsApp` on open, cache > 2h | `GET /api/sections/[code]/refresh` | Server rate-limits to once per 1h |
-| Scheduled | Vercel Cron, daily | `GET /api/cron/refresh-all` | Refreshes sections stale > 12h |
+| 层 | 触发 | 端点 | 新鲜度规则 |
+|----|------|------|-----------|
+| 按需 | 首次访问未缓存的 section | `GET /api/sections/[code]/results` | 缓存 < 24h 直接用，否则抓取并写库 |
+| 后台 | `ResultsApp` 打开时缓存 > 2h | `GET /api/sections/[code]/refresh` | 服务端 1h 限流 |
+| 定时 | Vercel Cron 每日 | `GET /api/cron/refresh-all` | 刷新陈旧 > 12h 的 section |
 
-Because users' own visits keep the sections they look at fresh (on-demand + 2h
-background refresh), the cron only needs to keep the broader set warm. WDTA
-results update weekly (after Saturday play), so daily is plenty.
+由于用户自己的访问会让他们看的 section 保持新鲜（按需 + 2h 后台刷新），cron 只需把
+其余的 section 保温即可。WDTA 赛果每周才更新（周六打完后），每天刷新已绰绰有余。
 
 ---
 
-## 4. The cron: batched & staggered
+## 4. Cron：分批 + 错开
 
 `app/api/cron/refresh-all/route.ts`
 
 ```
-maxDuration   = 60     # Hobby-safe function ceiling (seconds)
-STALE_AFTER_MS = 12h   # only refresh sections older than this
-BATCH_SIZE     = 6     # sections attempted per run
-STAGGER_MS     = 1500  # pause between sections (avoid rate-limiting)
-TIME_BUDGET_MS = 50s   # stop starting new sections past this; rest roll over
+maxDuration    = 60     # Hobby 安全的函数上限（秒）
+STALE_AFTER_MS = 12h    # 只刷新比这更旧的 section
+BATCH_SIZE     = 6      # 每次 run 处理的 section 数
+STAGGER_MS     = 1500   # section 之间的间隔（防限流）
+TIME_BUDGET_MS = 50s    # 超过此墙钟预算就不再开新 section，剩下的留到下次
 ```
 
-Each run:
+每次 run：
 
-1. Authenticates the request (see §6).
-2. `getStaleSections(STALE_AFTER_MS, BATCH_SIZE)` returns the **stalest** sections
-   first (never-cached before oldest-cached).
-3. Refreshes them one at a time, waiting `STAGGER_MS` between each.
-4. Stops starting new sections once `TIME_BUDGET_MS` is hit; the rest are picked
-   up next run.
+1. 校验请求来源（见 §6）。
+2. `getStaleSections(STALE_AFTER_MS, BATCH_SIZE)` 返回**最陈旧**的若干 section
+   （从未缓存的优先，其次是缓存时间最久的）。
+3. 逐个刷新，每个之间等待 `STAGGER_MS`。
+4. 一旦达到 `TIME_BUDGET_MS` 就停止开新 section，剩下的下次 run 再处理。
 
-So one run never blows the function timeout, and over several daily runs the
-whole index rotates through. Sections users actually open are handled instantly
-by the on-demand layer regardless.
+这样单次 run 不会触发函数超时；多次每日 run 会轮转覆盖整个索引。用户实际打开的 section
+则始终由按需层即时处理，与 cron 进度无关。
 
 ---
 
-## 5. Deploy on Vercel + Neon (free tier)
+## 5. 在 Vercel + Neon（免费档）上部署
 
-### 5.1 Create the database (Neon)
+### 5.1 创建数据库（Neon）
 
-1. Vercel dashboard → your project → **Storage** → **Create Database** → **Neon
-   (Serverless Postgres)**.
-2. Accept the defaults (free plan). Vercel links it to the project and **auto-injects**
-   the `POSTGRES_*` env vars (`POSTGRES_URL`, `POSTGRES_URL_NON_POOLING`, …) into
-   all environments (Production / Preview / Development).
+1. Vercel 后台 → 你的项目 → **Storage** → **Create Database** → **Neon
+   (Serverless Postgres)**。
+2. 用默认设置（免费档）。Vercel 会把数据库关联到项目，并**自动注入** `POSTGRES_*`
+   环境变量（`POSTGRES_URL`、`POSTGRES_URL_NON_POOLING` 等）到所有环境
+   （Production / Preview / Development）。
 
-### 5.2 Pull env vars locally & migrate
+### 5.2 拉取环境变量并建表
 
 ```bash
-# Option A: copy the .env.local snippet from the Neon storage page into .env.local
-# Option B: vercel env pull .env.local
+# 方式 A：从 Neon 存储页复制 .env.local 片段到本地 .env.local
+# 方式 B：vercel env pull .env.local
 
-npm run db:migrate     # creates competition_index, section_index, section_cache
+npm run db:migrate     # 创建 competition_index、section_index、section_cache
 ```
 
-The migration (`scripts/db-migrate.ts` → `runMigrations()`) is idempotent
-(`CREATE TABLE IF NOT EXISTS`). Production uses the **same** Neon database, so
-running it once locally is enough.
+迁移脚本（`scripts/db-migrate.ts` → `runMigrations()`）是幂等的
+（`CREATE TABLE IF NOT EXISTS`）。生产用的是**同一个** Neon 库，所以本地跑一次即可。
 
-> `db:migrate` loads `.env.local` via `tsx --env-file=.env.local`.
+> `db:migrate` 通过 `tsx --env-file=.env.local` 加载 `.env.local`。
 
-### 5.3 Set the remaining env vars (Vercel → Settings → Environment Variables)
+### 5.3 配置其余环境变量（Vercel → Settings → Environment Variables）
 
-| Var | Required | Notes |
-|-----|----------|-------|
-| `POSTGRES_*` | yes | Auto-added by the Neon integration. |
-| `CRON_SECRET` | yes | Any random string. Protects the cron route (see §6). |
-| `NEXT_PUBLIC_BUYMEACOFFEE_URL` | no | Footer / header donate link. |
+| 变量 | 必需 | 说明 |
+|------|------|------|
+| `POSTGRES_*` | 是 | Neon 集成自动添加。 |
+| `CRON_SECRET` | 是 | 任意随机串，保护 cron 端点（见 §6）。 |
+| `NEXT_PUBLIC_BUYMEACOFFEE_URL` | 否 | 页脚 / 头部的捐赠链接。 |
 
-After adding `CRON_SECRET`, redeploy so it takes effect.
+添加 `CRON_SECRET` 后需要重新部署才能生效。
 
-### 5.4 Cron config
+### 5.4 Cron 配置
 
-`vercel.json`:
+`vercel.json`：
 
 ```json
 {
@@ -154,32 +145,29 @@ After adding `CRON_SECRET`, redeploy so it takes effect.
 }
 ```
 
-- Schedules are **UTC**. `0 20 * * *` = 20:00 UTC ≈ early morning Melbourne.
-- Vercel detects `vercel.json` on deploy and registers the cron automatically —
-  no extra setup. Check **Project → Cron Jobs** after deploy.
+- 调度时间是 **UTC**。`0 20 * * *` = 20:00 UTC ≈ 墨尔本清晨。
+- Vercel 部署时会自动识别 `vercel.json` 并注册 cron，无需额外操作。部署后在
+  **项目 → Cron Jobs** 查看。
 
-### 5.5 Free-tier limits to know
+### 5.5 免费档需要知道的限制
 
 **Vercel Hobby**
-- Cron granularity is **once per day**, max **2 cron jobs**. The daily schedule
-  above is compliant.
-- Serverless functions cap at **60s** — hence `maxDuration = 60` and the cron's
-  time budget / batching.
-- To clear the refresh backlog faster you need **Pro**, which allows frequent
-  crons (e.g. hourly `0 * * * *`); then `BATCH_SIZE` × runs/day covers everything.
+- cron 粒度为**每天 1 次**，最多 **2 个** cron job。上面的每日调度符合要求。
+- serverless 函数上限 **60s**——所以有 `maxDuration = 60` 和 cron 的时间预算 / 分批。
+- 想更快清空刷新积压需要 **Pro**，它允许高频 cron（如每小时 `0 * * * *`）；此时
+  `BATCH_SIZE` × 每天 run 数即可覆盖全部。
 
-**Neon free**
-- ~0.5 GB storage (this app stores small JSON blobs — plenty).
-- Compute **auto-suspends** when idle; the first query after a pause has a small
-  cold-start delay. `@vercel/postgres` uses the pooled `POSTGRES_URL`.
+**Neon 免费**
+- 约 0.5 GB 存储（本应用只存小 JSON 块，足够）。
+- 计算在闲置时**自动挂起**；闲置后的第一次查询会有小幅冷启动延迟。`@vercel/postgres`
+  使用带连接池的 `POSTGRES_URL`。
 
 ---
 
-## 6. Cron authentication
+## 6. Cron 鉴权
 
-When `CRON_SECRET` is set, Vercel Cron automatically sends
-`Authorization: Bearer <CRON_SECRET>` with each scheduled request. The route
-rejects anything else:
+设置了 `CRON_SECRET` 后，Vercel Cron 会在每次定时请求里自动带上
+`Authorization: Bearer <CRON_SECRET>`。路由会拒绝其他请求：
 
 ```ts
 const authHeader = req.headers.get("Authorization");
@@ -188,17 +176,16 @@ if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
 }
 ```
 
-To trigger it manually for testing:
+手动触发测试：
 
 ```bash
 curl -H "Authorization: Bearer $CRON_SECRET" \
-  https://<your-app>.vercel.app/api/cron/refresh-all
+  https://<你的应用>.vercel.app/api/cron/refresh-all
 ```
 
 ---
 
-## 7. Source etiquette
+## 7. 源站礼仪
 
-TROLS `robots.txt` disallows `/wdta/`. Keep traffic low: cache aggressively
-(24h on-demand, 12h cron), stagger requests, and limit detail concurrency. If
-this is published more widely, ask WDTA/TROLS for permission or a data feed.
+TROLS `robots.txt` 禁止 `/wdta/`。请保持低流量：激进缓存（按需 24h、cron 12h）、
+错开请求、限制详情并发。若要更广泛发布，请向 WDTA/TROLS 申请许可或数据源。

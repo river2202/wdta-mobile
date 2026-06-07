@@ -1,131 +1,79 @@
 # WDTA Mobile Results
 
-Mobile-friendly Next.js page for Waverley Tennis WDTA Saturday morning Girls S/D Rubbers results.
+手机友好的 Next.js 网页，用于查看 Waverley Tennis WDTA 周六网球赛的赛果。
 
-The original WDTA/TROLS results page is table-heavy and hard to read on a phone. This app fetches the relevant WDTA sections, caches them in a database, and renders the results as mobile-first round and match cards.
+WDTA/TROLS 原始赛果页是大量表格，手机上很难看。本应用从 TROLS 抓取对应的
+section，缓存到数据库，并以"手机优先"的轮次卡片 / 比赛卡片形式展示。
 
-> **Data & deployment:** the app now uses a Postgres (Neon) backend with on-demand + scheduled refresh. See **[docs/data-refresh.md](docs/data-refresh.md)** for the current architecture and how to deploy the cron on Vercel + Neon free tier. Some sections below describe the original static-JSON MVP and are kept for history.
+> **数据与部署细节**：抓取逻辑、三层刷新机制，以及在 **Vercel + Neon 免费档** 上
+> 部署 cron 的完整步骤，见 **[docs/data-refresh.md](docs/data-refresh.md)**。
 
-## Status
+---
 
-Implemented MVP:
+## 功能
 
-- Next.js App Router with TypeScript.
-- Mobile-first results page with Section 1 / Section 2 tabs.
-- Cached current ladder standings for Section 1 and Section 2, shown before match results.
-- Cached match details from WDTA home-team popups, shown in collapsible panels.
-- Original WDTA button that deep-links to the selected Saturday AM section on the source site.
-- Original ladder links for the selected section and each listed team.
-- Last selected section is remembered for the next visit.
-- Last seen source result update time is saved locally and newer results trigger a notice.
-- Manual refresh button, enabled only when the visible cache is more than one hour old.
-- WDTA fetcher and Cheerio HTML parser.
-- JSON cache at `data/wdta-results.json`.
-- GitHub Actions daily refresh workflow.
-- Vercel-ready build.
+- Next.js App Router + TypeScript。
+- **落地页**：先选 Competition（如 Saturday AM），再选 Section，记住选择，下次直接进入结果页。
+- 支持**任意 competition / section**（从 TROLS 动态发现，不再硬编码）。
+- 结果页：积分榜（ladder）+ 各轮比赛卡片 + 可折叠的比赛详情（出场名单、rubber、比分）。
+- "Original WDTA" 按钮，深链到源站对应 section。
+- 切换 section 的图标按钮（清除当前选择，回落地页重选）。
+- 缓存超过 2 小时时，打开页面自动在后台刷新数据。
+- 页脚 / 头部的 Buy Me a Coffee 捐赠入口。
 
-External setup still needed:
+**不做**：登录、编辑、球队管理、赛果提交。
 
-- Push this repository to GitHub.
-- Import the repository into Vercel.
-- Confirm scheduled GitHub Actions are enabled on the default branch.
+---
 
-## Current Scope
+## 架构总览
 
-- Host the site on Vercel.
-- Keep the source in GitHub.
-- Refresh very infrequently: once per day.
-- Cache only these Saturday AM sections for now:
-  - `AA016`: Girls S/D Rubbers Section 1
-  - `AA017`: Girls S/D Rubbers Section 2
-- Display results in a mobile-first layout.
-- Do not provide login, editing, team admin, or result submission.
-
-## Source Data
-
-Observed source page:
-
-```txt
-https://www.trols.org.au/wdta/results.php
-```
-
-The public Waverley ladder page is:
-
-```txt
-https://www.waverleytennis.asn.au/ladders.html
-```
-
-That page embeds the TROLS ladder view, which can be queried directly for a section or club:
-
-```txt
-GET https://www.trols.org.au/wdta/ladders.php?which=1&style=&daytime=AA&section=AA016
-GET https://www.trols.org.au/wdta/ladders.php?which=1&style=&daytime=AA&section=AA017
-GET https://www.trols.org.au/wdta/ladders.php?which=2&style=&daytime=AA&club=<team>
-```
-
-The current Saturday morning competition is selected with:
-
-```txt
-daytime=AA
-```
-
-The section results are fetched by POSTing back to the same PHP page:
-
-```txt
-POST https://www.trols.org.au/wdta/results.php
-which=1&style=&daytime=AA&section=AA016
-which=1&style=&daytime=AA&section=AA017
-```
-
-The parser also discovers section IDs from the competition page by visible option text, then falls back to `AA016` and `AA017` if the options cannot be resolved.
-
-Played match rows include IDs such as `AA016041`. Those detail pages are fetched from:
-
-```txt
-https://www.trols.org.au/wdta/match_popup.php?matchid=AA016041&seasonid=
-```
-
-The cached details include team rosters, emergency markers, rubber combinations, and set scores.
-
-The cached ladder entries include rank, team name, points, percentage, optional venue notes, and the finals-cut marker from the source table.
-
-## Architecture
-
-GitHub is the durable cache and Vercel is the mobile delivery layer.
+Neon Postgres 做持久缓存，Vercel 做手机端分发。页面**只读数据库**，渲染时绝不直接
+抓取 TROLS（避免 serverless 超时）。
 
 ```mermaid
 flowchart LR
-  A["GitHub Actions daily schedule"] --> B["Fetch WDTA HTML"]
-  B --> C["Parse results, details, and ladders"]
-  C --> D["Write data/wdta-results.json"]
-  D --> E["Commit cached JSON to GitHub"]
-  E --> F["Vercel production deploy"]
-  F --> G["Next.js mobile page"]
+  T["TROLS 源站"] -->|fetch + parse| DB[("Neon Postgres")]
+  DB -->|只读| P["Next.js 页面 (/ , /results)"]
+  OD["按需 API\n/api/sections/[code]/results"] -->|写| DB
+  BG["客户端后台刷新\n/api/sections/[code]/refresh"] -->|写| DB
+  CR["Vercel Cron\n/api/cron/refresh-all"] -->|分批错开写| DB
 ```
 
-This avoids a database or runtime storage product. If the source site is temporarily unavailable, the deployed app can keep serving the last committed cache.
+三层刷新：
 
-## Local Development
+| 层 | 触发时机 | 端点 | 新鲜度规则 |
+|----|---------|------|-----------|
+| 按需 | 首次访问未缓存的 section | `GET /api/sections/[code]/results` | 缓存 < 24h 直接用，否则抓取并写库 |
+| 后台 | 打开结果页且缓存 > 2h | `GET /api/sections/[code]/refresh` | 服务端 1h 限流 |
+| 定时 | Vercel Cron 每日 | `GET /api/cron/refresh-all` | 刷新陈旧 > 12h 的 section，分批错开 |
 
-Install dependencies:
+> 详细的抓取逻辑、健壮性保障（超时 / 限并发 / 单场失败不致命）和 cron 分批策略，
+> 见 [docs/data-refresh.md](docs/data-refresh.md)。
+
+---
+
+## 本地开发
+
+安装依赖：
 
 ```bash
 npm install
 ```
 
-Refresh the local cache:
+配置数据库连接（从 Vercel 的 Neon 存储页复制 `.env.local`，或 `vercel env pull .env.local`），
+然后建表：
 
 ```bash
-npm run refresh:data
+npm run db:migrate
 ```
 
-Run locally:
+本地运行：
 
 ```bash
 npm run dev
 ```
 
-Verify the app:
+验证：
 
 ```bash
 npm run typecheck
@@ -133,77 +81,50 @@ npm run lint
 npm run build
 ```
 
-## Refresh Strategy
+---
 
-The implemented workflow is:
+## 部署（Vercel + Neon 免费档）
 
-```txt
-.github/workflows/refresh-results.yml
-```
+简要步骤（完整说明见 [docs/data-refresh.md](docs/data-refresh.md)）：
 
-Schedule:
+1. 把仓库推到 GitHub，在 Vercel 导入为 Next.js 项目。
+2. Vercel → Storage → 创建 **Neon（Serverless Postgres）**，会自动注入 `POSTGRES_*` 环境变量。
+3. 本地 `npm run db:migrate` 建表（生产用的是同一个 Neon 库）。
+4. Vercel → Settings → Environment Variables 设置：
+   - `CRON_SECRET`（任意随机串，保护 cron 端点）
+   - `NEXT_PUBLIC_BUYMEACOFFEE_URL`（可选，捐赠链接）
+5. `vercel.json` 已配置每日 cron；部署后在 **项目 → Cron Jobs** 可看到已注册。
 
-```yaml
-on:
-  schedule:
-    - cron: "0 20 * * *"
-  workflow_dispatch:
-```
+**免费档注意**：Vercel Hobby 的 cron 只能每天 1 次、函数上限 60s（所以 cron 用了分批 +
+墙钟预算）；Neon 免费档约 0.5GB、闲置自动挂起。
 
-`20:00 UTC` is around early morning in Melbourne, depending on daylight saving. The workflow installs dependencies, runs `npm run refresh:data`, and commits `data/wdta-results.json` only when the cache changes.
+---
 
-The page also has a manual refresh button. It stays disabled until the currently displayed cache is at least one hour old. The server route at `GET /api/results/refresh` enforces the same one-hour limit and returns `429 Too Many Requests` while the cache is still fresh.
+## 源数据
 
-Manual refresh updates the current page from the server response. The daily GitHub Action remains the durable refresh path that commits `data/wdta-results.json` and triggers a Vercel redeploy.
-
-The browser also stores the last seen `Results Loaded` timestamp locally. The first visit records the current source timestamp without showing a notice. Later visits or manual refreshes compare the cached source timestamp with the stored value; if it changed, the page shows a `New results available` notice until the user marks it as seen.
-
-## Vercel Notes
-
-Vercel can also run daily Cron Jobs from `vercel.json`, but that approach needs a durable runtime cache such as Blob/KV or another storage service. For this MVP, GitHub Actions is simpler because the JSON cache is committed to the repository.
-
-If refreshes move into Vercel later, the schedule would look like:
-
-```json
-{
-  "$schema": "https://openapi.vercel.sh/vercel.json",
-  "crons": [
-    {
-      "path": "/api/cron/refresh",
-      "schedule": "0 20 * * *"
-    }
-  ]
-}
-```
-
-Vercel Cron schedules use UTC. Vercel's Hobby plan supports daily cron frequency, which matches this project.
-
-## Project Structure
+源站赛果页：
 
 ```txt
-app/
-  page.tsx
-  layout.tsx
-  globals.css
-data/
-  wdta-results.json
-lib/
-  wdta/
-    fetch.ts
-    parse.ts
-    types.ts
-public/
-  tennis-mark.svg
-scripts/
-  refresh-wdta-results.ts
-.github/
-  workflows/
-    refresh-results.yml
+https://www.trols.org.au/wdta/results.php
 ```
 
-## Cached Data Shape
+各端点（`<comp>` 如 `AA` 表示 Saturday AM，`<code>` 如 `AA016`）：
 
-The cached JSON is explicit and small:
+```txt
+GET  results.php                                  → 解析 #daytime 得到所有 competition
+POST results.php  which=0&daytime=<comp>          → 解析 #section 得到所有 section
+POST results.php  which=1&daytime=<comp>&section=<code>   → 该 section 赛果表
+GET  ladders.php?which=1&daytime=<comp>&section=<code>    → 积分榜
+GET  match_popup.php?matchid=<id>                 → 单场比赛详情（出场名单 / rubber / 比分）
+```
+
+section 列表从竞赛页动态解析；解析失败时回退用 section code 前缀推断 competition。
+
+---
+
+## 缓存数据结构
+
+数据库 `section_cache.results_json` 存的就是下面这个 `CachedResults`（每个 section 一行）：
 
 ```ts
 type CachedResults = {
@@ -252,28 +173,46 @@ type MatchResult = {
 };
 ```
 
-## Deployment
+---
 
-1. Push this repository to GitHub.
-2. Import the GitHub repository into Vercel as a Next.js project.
-3. Keep the default build command:
+## 目录结构
 
-```bash
-npm run build
+```txt
+app/
+  page.tsx                      落地页（选 competition / section）
+  results/page.tsx              结果页（只读 DB）
+  layout.tsx, globals.css
+  api/
+    competitions/route.ts                       竞赛列表
+    competitions/[code]/sections/route.ts       某竞赛的 section 列表
+    sections/[code]/results/route.ts            按需抓取 + 缓存
+    sections/[code]/refresh/route.ts            强制刷新（1h 限流）
+    cron/refresh-all/route.ts                   Vercel Cron 分批刷新
+components/
+  LandingPage.tsx, ResultsApp.tsx, SectionLoader.tsx
+lib/
+  db/        index.ts, queries.ts, schema.sql
+  wdta/      fetch.ts, parse.ts, types.ts
+scripts/
+  db-migrate.ts                建表脚本
+docs/
+  data-refresh.md              数据抓取 + 部署文档
+vercel.json                    cron 配置
 ```
 
-4. After the first production deploy, the GitHub Action can refresh `data/wdta-results.json` daily and push cache updates.
-5. Vercel will redeploy when the cache commit lands.
+---
 
-## Source Etiquette
+## 源站礼仪
 
-The source site's `robots.txt` currently disallows `/wdta/`. This project should stay extremely low traffic and cache aggressively. If the page is published for a wider audience, ask WDTA/TROLS for permission or an official data feed.
+源站 `robots.txt` 目前禁止 `/wdta/`。本项目应保持极低流量、激进缓存（按需 24h、cron 12h），
+请求加 user-agent、错开发送、限制详情并发。若要面向更广人群发布，请先向 WDTA/TROLS
+申请许可或正式数据源。
 
-The daily fetch identifies itself with a user agent and avoids retries that would hammer the source site.
+---
 
-## Useful References
+## 参考链接
 
-- WDTA results page: https://www.trols.org.au/wdta/results.php
-- Vercel Cron Jobs: https://vercel.com/docs/cron-jobs
-- Vercel Cron usage and pricing: https://vercel.com/docs/cron-jobs/usage-and-pricing
-- Vercel Cron quickstart: https://vercel.com/docs/cron-jobs/quickstart
+- WDTA 赛果页：https://www.trols.org.au/wdta/results.php
+- Vercel Cron Jobs：https://vercel.com/docs/cron-jobs
+- Vercel Cron 用量与价格：https://vercel.com/docs/cron-jobs/usage-and-pricing
+- Neon on Vercel：https://vercel.com/docs/storage/vercel-postgres
