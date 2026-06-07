@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { ResultsApp } from "@/components/ResultsApp";
+import { SectionLoadError } from "@/components/SectionLoadError";
 import { getSectionCache, getSection, upsertSection, upsertSectionCache } from "@/lib/db/queries";
 import { deriveCompetitionCode, fetchSingleSectionResults } from "@/lib/wdta/fetch";
 import type { CachedResults } from "@/lib/wdta/types";
@@ -26,21 +27,29 @@ export default async function ResultsPage({ searchParams }: PageProps) {
   const results = await loadResults(sectionCode);
 
   if (!results) {
-    redirect("/");
+    // Do NOT redirect to "/" here: the home page would redirect straight back
+    // (cookie is still set), causing an infinite reload loop. Instead render a
+    // recovery screen that clears the saved selection.
+    return <SectionLoadError />;
   }
 
   return <ResultsApp initialResults={results} sectionCode={sectionCode} />;
 }
 
 async function loadResults(sectionCode: string): Promise<CachedResults | null> {
+  let staleCache: CachedResults | null = null;
+
   try {
     const cached = await getSectionCache(sectionCode);
     const now = Date.now();
     const generatedTime = cached ? Date.parse(cached.generated_at) : NaN;
     const isFresh = !Number.isNaN(generatedTime) && now - generatedTime < CACHE_MAX_AGE_MS;
 
-    if (cached && isFresh) {
-      return cached.results_json;
+    if (cached) {
+      staleCache = cached.results_json;
+      if (isFresh) {
+        return cached.results_json;
+      }
     }
 
     // Stale or missing — fetch from TROLS
@@ -60,6 +69,7 @@ async function loadResults(sectionCode: string): Promise<CachedResults | null> {
     return fresh;
   } catch (error) {
     console.error(`[results] Failed to load ${sectionCode}:`, error);
-    return null;
+    // Serve stale data rather than showing an error, if we have any cached copy.
+    return staleCache;
   }
 }
