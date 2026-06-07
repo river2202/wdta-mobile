@@ -147,3 +147,16 @@ export async function getStaleSections(maxAgeMs: number, limit: number): Promise
   `;
   return result.rows;
 }
+
+/** Count how many sections are currently stale (older than maxAgeMs or never cached). */
+export async function countStaleSections(maxAgeMs: number): Promise<number> {
+  const cutoff = new Date(Date.now() - maxAgeMs).toISOString();
+  const result = await sql<{ n: number }>`
+    SELECT COUNT(*)::int AS n
+    FROM section_index si
+    LEFT JOIN section_cache sc ON sc.section_code = si.code
+    WHERE sc.section_code IS NULL
+       OR sc.refreshed_at < ${cutoff}::timestamptz
+  `;
+  return result.rows[0]?.n ?? 0;
+}
