@@ -48,6 +48,8 @@ export type RoundResult = {
 export type LadderEntry = {
   rank: number;
   team: string;
+  /** TROLS team code (e.g. "AA116"), used to deep-link to the team's fixture. */
+  teamCode?: string;
   points: number;
   percentage: number;
   venueNote?: string;

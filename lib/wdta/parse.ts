@@ -76,6 +76,24 @@ export function parseCompetitionOptions(html: string): CompetitionOption[] {
     .filter((option) => option.code && option.label);
 }
 
+export type TeamOption = {
+  code: string;
+  name: string;
+};
+
+/** Parse the team select on fixture.php (option value = team code, text = team name). */
+export function parseFixtureTeamOptions(html: string): TeamOption[] {
+  const $ = cheerio.load(html);
+
+  return $("#team option")
+    .toArray()
+    .map((element) => ({
+      code: String($(element).attr("value") ?? ""),
+      name: cleanText($(element).text()),
+    }))
+    .filter((option) => option.code && option.name);
+}
+
 export function parseSectionResults(
   html: string,
   sectionCode: string,

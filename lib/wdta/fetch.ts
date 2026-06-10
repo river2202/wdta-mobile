@@ -1,6 +1,8 @@
 import {
+  cleanText,
   parseCompetitionName,
   parseCompetitionOptions,
+  parseFixtureTeamOptions,
   parseLadderEntries,
   parseLaddersLoadedAt,
   parseMatchDetails,
@@ -13,6 +15,7 @@ import type { CachedResults, MatchResult, SectionResults } from "./types";
 export const SOURCE_URL = "https://www.trols.org.au/wdta/results.php";
 export const MATCH_POPUP_URL = "https://www.trols.org.au/wdta/match_popup.php";
 export const LADDERS_URL = "https://www.trols.org.au/wdta/ladders.php";
+export const FIXTURE_URL = "https://www.trols.org.au/wdta/fixture.php";
 
 const REQUEST_HEADERS = {
   "content-type": "application/x-www-form-urlencoded",
@@ -109,6 +112,10 @@ export async function fetchSingleSectionResults(
   const laddersLoadedAt = parseLaddersLoadedAt(ladderHtml);
   sectionResults.ladder = parseLadderEntries(ladderHtml, sectionCode);
 
+  // Team codes (for per-team fixture deep links). Non-fatal: if the fixture
+  // page can't be fetched/parsed, ladder entries simply won't carry a teamCode.
+  await attachTeamCodes(sectionResults, competitionCode, sectionCode);
+
   // Match details (the slow part)
   await attachMatchDetails(sectionResults);
 
@@ -137,6 +144,51 @@ export function deriveCompetitionCode(sectionCode: string): string {
 // ---------------------------------------------------------------------------
 // Internal helpers
 // ---------------------------------------------------------------------------
+
+async function attachTeamCodes(
+  section: SectionResults,
+  competitionCode: string,
+  sectionCode: string,
+) {
+  if (!section.ladder || section.ladder.length === 0) {
+    return;
+  }
+
+  try {
+    const html = await getFixturePage(competitionCode, sectionCode);
+    const teams = parseFixtureTeamOptions(html);
+    if (teams.length === 0) return;
+
+    const codeByName = new Map(teams.map((t) => [cleanText(t.name), t.code]));
+    for (const entry of section.ladder) {
+      const code = codeByName.get(cleanText(entry.team));
+      if (code) entry.teamCode = code;
+    }
+  } catch (error) {
+    // Non-fatal — ladder still renders, just without per-team fixture links.
+    console.warn(`[wdta] team codes failed for ${sectionCode}:`, error);
+  }
+}
+
+async function getFixturePage(competitionCode: string, sectionCode: string): Promise<string> {
+  const url = new URL(FIXTURE_URL);
+  url.searchParams.set("which", "1");
+  url.searchParams.set("style", "");
+  url.searchParams.set("daytime", competitionCode);
+  url.searchParams.set("section", sectionCode);
+  const response = await fetchWithTimeout(url, {
+    headers: REQUEST_HEADERS,
+    cache: "no-store",
+  });
+
+  if (!response.ok) {
+    throw new Error(
+      `WDTA fixture request failed for ${sectionCode} with ${response.status} ${response.statusText}`,
+    );
+  }
+
+  return response.text();
+}
 
 async function attachMatchDetails(section: SectionResults) {
   const playedMatches = section.rounds

@@ -17,6 +17,7 @@ import type {
 const AUTO_REFRESH_AGE_MS = 2 * 60 * 60 * 1000; // auto-refresh when cache older than 2h
 const ORIGINAL_RESULTS_URL = "https://www.trols.org.au/wdta/results.php";
 const ORIGINAL_LADDERS_URL = "https://www.trols.org.au/wdta/ladders.php";
+const ORIGINAL_FIXTURE_URL = "https://www.trols.org.au/wdta/fixture.php";
 const SELECTED_SECTION_STORAGE_KEY = "wdta-mobile-section";
 const SEEN_RESULTS_STORAGE_KEY = "wdta-mobile-seen-results";
 // Set NEXT_PUBLIC_BUYMEACOFFEE_URL in your env / Vercel dashboard to your own page.
@@ -118,7 +119,7 @@ export function ResultsApp({
   const selectedSection = results.sections[0];
 
   const originalResultsUrl = selectedSection
-    ? buildOriginalResultsUrl(selectedSection.sectionCode)
+    ? buildOriginalResultsUrl(results.source.competitionCode, selectedSection.sectionCode)
     : ORIGINAL_RESULTS_URL;
 
   function handleChangeTeam() {
@@ -221,7 +222,10 @@ export function ResultsApp({
       </header>
 
       {selectedSection ? (
-        <SectionView section={selectedSection} />
+        <SectionView
+          section={selectedSection}
+          competitionCode={results.source.competitionCode}
+        />
       ) : (
         <section className="empty-state">
           <h2>No cached results yet</h2>
@@ -247,17 +251,31 @@ export function ResultsApp({
   );
 }
 
-function SectionView({ section }: { section: SectionResults }) {
+function SectionView({
+  section,
+  competitionCode,
+}: {
+  section: SectionResults;
+  competitionCode: string;
+}) {
   const latestRound = Math.max(...section.rounds.map((round) => round.round));
+  // Show the latest round first; older rounds follow, collapsed by default.
+  const rounds = [...section.rounds].sort((a, b) => b.round - a.round);
 
   return (
     <section className="section-view" aria-label={section.sectionName}>
-      {section.ladder ? <LadderPanel section={section} entries={section.ladder} /> : null}
-      {section.rounds.map((round) => (
+      {section.ladder ? (
+        <LadderPanel
+          section={section}
+          entries={section.ladder}
+          competitionCode={competitionCode}
+        />
+      ) : null}
+      {rounds.map((round) => (
         <RoundCard
           key={`${section.sectionCode}-${round.round}`}
           round={round}
-          defaultDetailsOpen={round.round === latestRound}
+          defaultOpen={round.round === latestRound}
         />
       ))}
     </section>
@@ -267,9 +285,11 @@ function SectionView({ section }: { section: SectionResults }) {
 function LadderPanel({
   section,
   entries,
+  competitionCode,
 }: {
   section: SectionResults;
   entries: LadderEntry[];
+  competitionCode: string;
 }) {
   return (
     <section className="ladder-panel" aria-label={`${section.sectionName} ladder`}>
@@ -280,7 +300,7 @@ function LadderPanel({
         </div>
         <a
           className="ladder-source-link"
-          href={buildOriginalLadderUrl(section.sectionCode)}
+          href={buildOriginalLadderUrl(competitionCode, section.sectionCode)}
           aria-label={`Open original ladder for ${section.sectionName}`}
         >
           Original ladder
@@ -303,6 +323,17 @@ function LadderPanel({
               <span>%</span>
               <strong>{entry.percentage.toFixed(2)}</strong>
             </div>
+            {entry.teamCode ? (
+              <a
+                className="team-fixture-link"
+                href={buildFixtureUrl(competitionCode, section.sectionCode, entry.teamCode)}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={`Fixture for ${entry.team}`}
+              >
+                Fixture
+              </a>
+            ) : null}
           </div>
         ))}
       </div>
@@ -310,29 +341,24 @@ function LadderPanel({
   );
 }
 
-function RoundCard({
-  round,
-  defaultDetailsOpen,
-}: {
-  round: RoundResult;
-  defaultDetailsOpen: boolean;
-}) {
+function RoundCard({ round, defaultOpen }: { round: RoundResult; defaultOpen: boolean }) {
   return (
-    <section className="round-band">
-      <div className="round-heading">
+    <details className="round-band" open={defaultOpen}>
+      <summary className="round-heading">
         <h2>Round {round.round}</h2>
+        <span className="round-toggle" aria-hidden="true" />
         <time>{round.date}</time>
-      </div>
+      </summary>
       <div className="match-list">
         {round.matches.map((match, index) => (
           <MatchCard
             key={match.matchId ?? `${round.round}-${index}`}
             match={match}
-            defaultDetailsOpen={defaultDetailsOpen}
+            defaultDetailsOpen={false}
           />
         ))}
       </div>
-    </section>
+    </details>
   );
 }
 
@@ -527,21 +553,31 @@ function CoffeeIcon() {
   );
 }
 
-function buildOriginalResultsUrl(sectionCode: string) {
+function buildOriginalResultsUrl(competitionCode: string, sectionCode: string) {
   const url = new URL(ORIGINAL_RESULTS_URL);
   url.searchParams.set("which", "1");
   url.searchParams.set("style", "");
-  url.searchParams.set("daytime", "AA");
+  url.searchParams.set("daytime", competitionCode);
   url.searchParams.set("section", sectionCode);
   return url.toString();
 }
 
-function buildOriginalLadderUrl(sectionCode: string) {
+function buildOriginalLadderUrl(competitionCode: string, sectionCode: string) {
   const url = new URL(ORIGINAL_LADDERS_URL);
   url.searchParams.set("which", "1");
   url.searchParams.set("style", "");
-  url.searchParams.set("daytime", "AA");
+  url.searchParams.set("daytime", competitionCode);
   url.searchParams.set("section", sectionCode);
+  return url.toString();
+}
+
+function buildFixtureUrl(competitionCode: string, sectionCode: string, teamCode: string) {
+  const url = new URL(ORIGINAL_FIXTURE_URL);
+  url.searchParams.set("which", "2");
+  url.searchParams.set("style", "");
+  url.searchParams.set("daytime", competitionCode);
+  url.searchParams.set("section", sectionCode);
+  url.searchParams.set("team", teamCode);
   return url.toString();
 }
 

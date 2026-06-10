@@ -303,7 +303,7 @@ h1 {
 
 .ladder-row {
   display: grid;
-  grid-template-columns: 30px minmax(0, 1fr) 54px 64px;
+  grid-template-columns: 30px minmax(0, 1fr) 54px 64px auto;
   align-items: center;
   gap: 8px;
   border-radius: 8px;
@@ -359,7 +359,7 @@ h1 {
   line-height: 1.1;
 }
 
-.team-source-link {
+.team-fixture-link {
   min-height: 30px;
   display: inline-grid;
   place-items: center;
@@ -370,14 +370,26 @@ h1 {
   font-size: 0.72rem;
   font-weight: 900;
   padding: 5px 7px;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+/* Round band is a collapsible <details>; heading is the <summary>. */
+.round-band {
+  border-radius: 8px;
 }
 
 .round-heading {
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 4px 2px;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 2px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.round-heading::-webkit-details-marker {
+  display: none;
 }
 
 .round-heading h2 {
@@ -385,9 +397,31 @@ h1 {
 }
 
 .round-heading time {
+  margin-left: auto;
   color: var(--muted);
   font-size: 0.9rem;
   font-weight: 700;
+}
+
+/* +/- toggle badge next to "Round X", reusing the Match details look. */
+.round-toggle {
+  display: grid;
+  width: 24px;
+  height: 24px;
+  place-items: center;
+  border-radius: 999px;
+  background: rgba(29, 111, 80, 0.1);
+  color: var(--accent-strong);
+  font-size: 0.95rem;
+  font-weight: 900;
+}
+
+.round-toggle::after {
+  content: "+";
+}
+
+.round-band[open] .round-toggle::after {
+  content: "-";
 }
 
 .match-list {
@@ -768,7 +802,7 @@ h1 {
     grid-template-columns: 26px minmax(0, 1fr) 48px 56px;
   }
 
-  .team-source-link {
+  .team-fixture-link {
     grid-column: 2 / -1;
     width: 100%;
   }
