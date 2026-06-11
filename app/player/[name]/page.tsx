@@ -39,10 +39,8 @@ export default async function PlayerPage({ params }: PageProps) {
   );
 }
 
-/** Load the cached match results for the sections this player appears in, keyed by matchId. */
-async function loadMatchDetails(
-  rows: PlayerAppearanceDbRow[],
-): Promise<Map<string, MatchDetails>> {
+/** Load cached match results for the player's sections, keyed by matchId. */
+async function loadMatchDetails(rows: PlayerAppearanceDbRow[]): Promise<Map<string, MatchDetails>> {
   const sectionCodes = [...new Set(rows.map((r) => r.section_code))];
   const map = new Map<string, MatchDetails>();
 

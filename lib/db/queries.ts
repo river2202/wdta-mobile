@@ -239,6 +239,48 @@ export async function getPlayerAppearances(playerKey: string): Promise<PlayerApp
   return result.rows;
 }
 
+export type PlayerSearchSection = { sectionCode: string; sectionName: string; team: string };
+export type PlayerSearchResult = { key: string; label: string; sections: PlayerSearchSection[] };
+
+/** Typeahead search: players whose name contains the query, with their distinct sections. */
+export async function searchPlayers(queryText: string, limit = 12): Promise<PlayerSearchResult[]> {
+  const normalized = queryText.replace(/\s+/g, " ").trim().toLowerCase();
+  if (normalized.length === 0) return [];
+
+  const like = `%${normalized}%`;
+  const result = await sql<{
+    player_key: string;
+    player_label: string;
+    section_code: string;
+    section_name: string;
+    team: string;
+  }>`
+    SELECT DISTINCT player_key, player_label, section_code, section_name, team
+    FROM player_appearance
+    WHERE player_key LIKE ${like}
+    ORDER BY player_label
+    LIMIT 300
+  `;
+
+  const byKey = new Map<string, PlayerSearchResult>();
+  for (const r of result.rows) {
+    let player = byKey.get(r.player_key);
+    if (!player) {
+      player = { key: r.player_key, label: r.player_label, sections: [] };
+      byKey.set(r.player_key, player);
+    }
+    if (!player.sections.some((s) => s.sectionCode === r.section_code)) {
+      player.sections.push({
+        sectionCode: r.section_code,
+        sectionName: r.section_name,
+        team: r.team,
+      });
+    }
+  }
+
+  return [...byKey.values()].slice(0, limit);
+}
+
 /** Persist a section's results AND its derived player appearances together. */
 export async function saveSectionResults(
   sectionCode: string,

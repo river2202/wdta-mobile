@@ -648,6 +648,17 @@ h1 {
   text-align: right;
 }
 
+/* Rubbers the highlighted player took part in (player page only). */
+.rubber-row--mine {
+  background: rgba(29, 111, 80, 0.12);
+  box-shadow: inset 0 0 0 1px rgba(29, 111, 80, 0.35);
+}
+
+.rubber-side.mine {
+  color: var(--accent-strong);
+  font-weight: 900;
+}
+
 .rubber-score {
   color: var(--ink);
   font-size: 0.92rem;
@@ -914,6 +925,96 @@ h1 {
   font-size: 0.82rem;
 }
 
+/* Player-name search (home screen, above the competition list) */
+.player-search {
+  display: grid;
+  gap: 8px;
+  padding: 20px 16px 0;
+}
+
+.search-label {
+  font-size: 0.82rem;
+  font-weight: 850;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.search-input {
+  width: 100%;
+  min-height: 50px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+  padding: 0 14px;
+  font-size: 1rem;
+  color: var(--ink);
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(29, 111, 80, 0.12);
+}
+
+.search-results {
+  display: grid;
+  gap: 6px;
+  margin-top: 2px;
+}
+
+.search-result {
+  display: grid;
+  gap: 2px;
+  text-align: left;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+  padding: 10px 12px;
+  cursor: pointer;
+}
+
+.search-result:active {
+  border-color: var(--accent);
+  background: rgba(29, 111, 80, 0.05);
+}
+
+.search-result-name {
+  font-weight: 800;
+  color: var(--ink);
+}
+
+.search-result-sub {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.search-empty {
+  color: var(--muted);
+  font-size: 0.88rem;
+  padding: 6px 2px;
+}
+
+.or-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 18px 16px 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 850;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.or-divider::before,
+.or-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--line);
+}
+
 /* Selected competition band — slides down under header */
 .comp-band {
   display: flex;
@@ -1082,51 +1183,24 @@ h1 {
 
 .player-block {
   display: grid;
-  gap: 10px;
+  gap: 14px;
   margin-bottom: 18px;
 }
 
-/* Shared collapsible summary with a +/- badge (reuses the Match details look). */
-.collapse-summary {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  cursor: pointer;
-  list-style: none;
-}
-
-.collapse-summary::-webkit-details-marker {
-  display: none;
-}
-
-.collapse-summary::after {
-  content: "+";
-  display: grid;
-  width: 24px;
-  height: 24px;
-  flex: 0 0 auto;
-  place-items: center;
-  border-radius: 999px;
-  background: rgba(29, 111, 80, 0.1);
-  color: var(--accent-strong);
-  font-size: 0.95rem;
-  font-weight: 900;
-}
-
-details[open] > .collapse-summary::after {
-  content: "-";
-}
-
-/* Team group (collapsible) */
-.player-team-group {
+/* Team group (flat — no folding) */
+.player-team-block {
   border: 1px solid rgba(216, 210, 196, 0.9);
   border-radius: 10px;
   background: var(--surface);
   overflow: hidden;
 }
 
-.player-team-summary {
+.player-team-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   padding: 12px;
+  border-bottom: 1px solid var(--line);
 }
 
 .player-team-main {
@@ -1152,45 +1226,115 @@ details[open] > .collapse-summary::after {
   flex: 0 0 auto;
 }
 
-.player-team-count {
-  color: var(--muted);
-  font-size: 0.8rem;
-  font-weight: 800;
-  white-space: nowrap;
+.player-record {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.82rem;
+  font-weight: 900;
 }
 
-/* Match list within a team group */
+.player-record-w {
+  color: var(--accent-strong);
+}
+
+.player-record-l {
+  color: var(--red);
+}
+
+.player-record-d {
+  color: var(--muted);
+}
+
+/* Match list (flat rows, prominent result) */
 .player-match-list {
   display: grid;
-  gap: 8px;
-  padding: 0 12px 12px;
 }
 
 .player-match {
-  border-radius: 8px;
-  background: var(--surface-muted);
-  overflow: hidden;
+  border-top: 1px solid rgba(216, 210, 196, 0.5);
 }
 
-.player-match-summary {
-  padding: 9px 10px;
-  font-size: 0.82rem;
+.player-match:first-child {
+  border-top: none;
 }
 
-.player-match-when {
+.player-match-row {
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+}
+
+.player-match-row.win {
+  background: rgba(29, 111, 80, 0.05);
+}
+
+.player-match-row.loss {
+  background: rgba(166, 61, 53, 0.05);
+}
+
+/* Inline match detail under each result row (no folding). */
+.player-match .detail-body {
+  padding: 4px 12px 12px;
+}
+
+/* Emphasize the profile owner within a match roster. */
+.player-list li.is-highlight {
+  color: var(--accent-strong);
+}
+
+.player-list li.is-highlight .player-link {
+  color: var(--accent-strong);
+  font-weight: 900;
+  border-bottom-color: var(--accent);
+}
+
+.result-tag {
+  flex: 0 0 auto;
+  display: inline-grid;
+  place-items: center;
+  min-width: 52px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.03em;
+}
+
+.result-tag.win {
+  background: var(--accent);
+  color: #ffffff;
+}
+
+.result-tag.loss {
+  background: var(--red);
+  color: #ffffff;
+}
+
+.result-tag.draw,
+.result-tag.unknown {
+  background: var(--surface-muted);
+  color: var(--muted);
+}
+
+.player-match-info {
+  display: grid;
+  gap: 1px;
   flex: 1;
   min-width: 0;
 }
 
-.player-match-date {
-  font-weight: 850;
-  color: var(--ink);
+.player-match-vs {
+  font-weight: 800;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.player-match-vs {
+.player-match-sub {
   color: var(--muted);
+  font-size: 0.78rem;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1200,47 +1344,4 @@ details[open] > .collapse-summary::after {
   flex: 0 0 auto;
   font-weight: 900;
   font-variant-numeric: tabular-nums;
-}
-
-.result-pill {
-  display: inline-grid;
-  width: 22px;
-  height: 22px;
-  flex: 0 0 auto;
-  place-items: center;
-  border-radius: 999px;
-  font-size: 0.72rem;
-  font-weight: 900;
-}
-
-.result-pill.win {
-  background: rgba(29, 111, 80, 0.14);
-  color: var(--accent-strong);
-}
-
-.result-pill.loss {
-  background: rgba(166, 61, 53, 0.14);
-  color: var(--red);
-}
-
-.result-pill.draw {
-  background: var(--surface);
-  color: var(--muted);
-}
-
-.player-match .detail-body {
-  padding: 2px 10px 10px;
-}
-
-.player-match-nodetail {
-  padding: 0 10px 10px;
-  color: var(--muted);
-  font-size: 0.82rem;
-}
-
-/* Emphasize the profile owner within a match roster. */
-.player-list li.is-highlight .player-link {
-  color: var(--ink);
-  font-weight: 900;
-  border-bottom-color: var(--accent);
 }
