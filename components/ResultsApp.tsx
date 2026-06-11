@@ -257,7 +257,14 @@ function SectionView({
   section: SectionResults;
   competitionCode: string;
 }) {
-  const latestRound = Math.max(...section.rounds.map((round) => round.round));
+  // Open the most recent round that actually has results — the highest round
+  // number can be a future/pending round (all matches still "unknown"), which
+  // isn't useful to expand. Fall back to the latest round if none are played.
+  const roundsWithResults = section.rounds.filter((round) =>
+    round.matches.some((match) => match.status === "played"),
+  );
+  const pool = roundsWithResults.length > 0 ? roundsWithResults : section.rounds;
+  const defaultOpenRound = Math.max(...pool.map((round) => round.round));
   // Show the latest round first; older rounds follow, collapsed by default.
   const rounds = [...section.rounds].sort((a, b) => b.round - a.round);
 
@@ -274,7 +281,7 @@ function SectionView({
         <RoundCard
           key={`${section.sectionCode}-${round.round}`}
           round={round}
-          defaultOpen={round.round === latestRound}
+          defaultOpen={round.round === defaultOpenRound}
         />
       ))}
     </section>
@@ -353,7 +360,7 @@ function RoundCard({ round, defaultOpen }: { round: RoundResult; defaultOpen: bo
           <MatchCard
             key={match.matchId ?? `${round.round}-${index}`}
             match={match}
-            defaultDetailsOpen={false}
+            defaultDetailsOpen={defaultOpen}
           />
         ))}
       </div>
