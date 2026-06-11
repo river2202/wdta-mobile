@@ -43,6 +43,8 @@ export type MatchResult = {
 export type RoundResult = {
   round: number;
   date: string;
+  /** Finals label (e.g. "Grand Final") when the round is a finals, not a numbered round. */
+  label?: string;
   matches: MatchResult[];
 };
 

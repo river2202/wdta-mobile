@@ -115,15 +115,26 @@ export function parseSectionResults(
 
   const rounds: RoundResult[] = [];
   let currentRound: RoundResult | undefined;
+  // Finals rounds have no number; give them descending numbers from a high base
+  // so they sort as the most recent (they appear before Rd.N in the source).
+  let finalsSeq = FINALS_BASE;
 
   for (const row of resultTable.find("tr").toArray()) {
     const $row = $(row);
     const roundHeader = $row.find("td.sb").first();
 
     if (roundHeader.length > 0) {
-      currentRound = parseRoundHeader(cleanText(roundHeader.text()));
-      if (currentRound) {
+      const header = parseRoundHeader(cleanText(roundHeader.text()));
+      if (header) {
+        currentRound = {
+          round: header.round ?? finalsSeq--,
+          date: header.date,
+          ...(header.label ? { label: header.label } : {}),
+          matches: [],
+        };
         rounds.push(currentRound);
+      } else {
+        currentRound = undefined;
       }
       continue;
     }
@@ -233,17 +244,33 @@ export function parseLadderEntries(html: string, sectionCode: string): LadderEnt
   return entries;
 }
 
-function parseRoundHeader(text: string): RoundResult | undefined {
-  const match = text.match(/(\d{1,2}\s+[A-Za-z]{3}\s+\d{2}).*?Rd\.?\s*(\d+)/i);
-  if (!match) {
-    return undefined;
+// Finals rounds (no number) sort above any real round number.
+const FINALS_BASE = 900;
+const FINALS_RE = /grand final|preliminary final|qualifying final|elimination final|semi[-\s]?final|final/i;
+
+type RoundHeader = { round?: number; date: string; label?: string };
+
+function parseRoundHeader(text: string): RoundHeader | undefined {
+  const numbered = text.match(/(\d{1,2}\s+[A-Za-z]{3}\s+\d{2}).*?Rd\.?\s*(\d+)/i);
+  if (numbered) {
+    return { date: numbered[1], round: Number.parseInt(numbered[2], 10) };
   }
 
-  return {
-    date: match[1],
-    round: Number.parseInt(match[2], 10),
-    matches: [],
-  };
+  const finals = text.match(FINALS_RE);
+  if (finals) {
+    const date = text.match(/\d{1,2}\s+[A-Za-z]{3}\s+\d{2}/)?.[0] ?? "";
+    return { date, label: titleCase(finals[0]) };
+  }
+
+  return undefined;
+}
+
+function titleCase(value: string): string {
+  return value
+    .replace(/\s+/g, " ")
+    .trim()
+    .toLowerCase()
+    .replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
 function parseMatchRow(

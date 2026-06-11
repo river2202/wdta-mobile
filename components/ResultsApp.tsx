@@ -351,7 +351,7 @@ function RoundCard({ round, defaultOpen }: { round: RoundResult; defaultOpen: bo
   return (
     <details className="round-band" open={defaultOpen}>
       <summary className="round-heading">
-        <h2>Round {round.round}</h2>
+        <h2>{round.label ?? `Round ${round.round}`}</h2>
         <span className="round-toggle" aria-hidden="true" />
         <time>{round.date}</time>
       </summary>
