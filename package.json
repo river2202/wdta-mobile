@@ -9,7 +9,8 @@
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit -p tsconfig.typecheck.json",
-    "db:migrate": "tsx --env-file=.env.local scripts/db-migrate.ts"
+    "db:migrate": "tsx --env-file=.env.local scripts/db-migrate.ts",
+    "db:backfill": "tsx --env-file=.env.local scripts/backfill-appearances.ts"
   },
   "dependencies": {
     "@vercel/postgres": "^0.10.0",

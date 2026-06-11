@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import type {
@@ -445,7 +446,9 @@ function PlayerList({
         {players.map((player) => (
           <li key={`${player.position}-${player.name}`}>
             <span className="player-position">{player.position}</span>
-            <span>{player.name}</span>
+            <Link className="player-link" href={`/player/${encodeURIComponent(player.name)}`}>
+              {player.name}
+            </Link>
             {player.emergency ? <span className="emergency-badge">E</span> : null}
           </li>
         ))}

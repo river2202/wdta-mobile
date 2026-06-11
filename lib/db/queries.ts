@@ -1,4 +1,5 @@
-import { sql } from "./index";
+import { query, sql } from "./index";
+import { extractAppearances, type PlayerAppearanceRow } from "@/lib/wdta/appearances";
 import type { CachedResults } from "@/lib/wdta/types";
 
 // ---------------------------------------------------------------------------
@@ -159,4 +160,90 @@ export async function countStaleSections(maxAgeMs: number): Promise<number> {
        OR sc.refreshed_at < ${cutoff}::timestamptz
   `;
   return result.rows[0]?.n ?? 0;
+}
+
+// ---------------------------------------------------------------------------
+// Player appearances
+// ---------------------------------------------------------------------------
+
+export type PlayerAppearanceDbRow = {
+  player_label: string;
+  team: string;
+  competition_code: string;
+  section_code: string;
+  section_name: string;
+  round: number;
+  match_date: string | null;
+  match_id: string;
+  opponent: string;
+  position: string;
+  emergency: boolean;
+  team_points: number | null;
+  opp_points: number | null;
+};
+
+/** Replace all appearance rows for a section (delete + batch insert). */
+export async function replaceSectionAppearances(
+  sectionCode: string,
+  rows: PlayerAppearanceRow[],
+): Promise<void> {
+  await sql`DELETE FROM player_appearance WHERE section_code = ${sectionCode}`;
+  if (rows.length === 0) return;
+
+  await query(
+    `INSERT INTO player_appearance
+       (player_key, player_label, team, competition_code, section_code, section_name,
+        round, match_date, match_id, opponent, position, emergency, team_points, opp_points)
+     SELECT * FROM unnest(
+       $1::text[], $2::text[], $3::text[], $4::text[], $5::text[], $6::text[],
+       $7::int[], $8::text[], $9::text[], $10::text[], $11::text[], $12::boolean[],
+       $13::real[], $14::real[]
+     )
+     ON CONFLICT (match_id, player_key, position) DO UPDATE SET
+       player_label = EXCLUDED.player_label,
+       team = EXCLUDED.team,
+       competition_code = EXCLUDED.competition_code,
+       section_name = EXCLUDED.section_name,
+       round = EXCLUDED.round,
+       match_date = EXCLUDED.match_date,
+       opponent = EXCLUDED.opponent,
+       emergency = EXCLUDED.emergency,
+       team_points = EXCLUDED.team_points,
+       opp_points = EXCLUDED.opp_points`,
+    [
+      rows.map((r) => r.playerKey),
+      rows.map((r) => r.playerLabel),
+      rows.map((r) => r.team),
+      rows.map((r) => r.competitionCode),
+      rows.map((r) => r.sectionCode),
+      rows.map((r) => r.sectionName),
+      rows.map((r) => r.round),
+      rows.map((r) => r.matchDate),
+      rows.map((r) => r.matchId),
+      rows.map((r) => r.opponent),
+      rows.map((r) => r.position),
+      rows.map((r) => r.emergency),
+      rows.map((r) => r.teamPoints),
+      rows.map((r) => r.oppPoints),
+    ],
+  );
+}
+
+export async function getPlayerAppearances(playerKey: string): Promise<PlayerAppearanceDbRow[]> {
+  const result = await sql<PlayerAppearanceDbRow>`
+    SELECT player_label, team, competition_code, section_code, section_name, round,
+           match_date, match_id, opponent, position, emergency, team_points, opp_points
+    FROM player_appearance
+    WHERE player_key = ${playerKey}
+  `;
+  return result.rows;
+}
+
+/** Persist a section's results AND its derived player appearances together. */
+export async function saveSectionResults(
+  sectionCode: string,
+  results: CachedResults,
+): Promise<void> {
+  await upsertSectionCache(sectionCode, results);
+  await replaceSectionAppearances(sectionCode, extractAppearances(results));
 }

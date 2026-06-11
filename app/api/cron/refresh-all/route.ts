@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { countStaleSections, getStaleSections, upsertSectionCache } from "@/lib/db/queries";
+import { countStaleSections, getStaleSections, saveSectionResults } from "@/lib/db/queries";
 import { fetchSingleSectionResults } from "@/lib/wdta/fetch";
 
 export const dynamic = "force-dynamic";
@@ -52,7 +52,7 @@ export async function GET(req: Request) {
       const section = candidates[index];
       try {
         const fresh = await fetchSingleSectionResults(section.competition_code, section.code);
-        await upsertSectionCache(section.code, fresh);
+        await saveSectionResults(section.code, fresh);
         results.push({ sectionCode: section.code, status: "ok" });
       } catch (error) {
         results.push({

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { getSectionCache, getSection, upsertSection, upsertSectionCache } from "@/lib/db/queries";
+import { getSectionCache, getSection, upsertSection, saveSectionResults } from "@/lib/db/queries";
 import { deriveCompetitionCode, fetchSingleSectionResults } from "@/lib/wdta/fetch";
 
 export const dynamic = "force-dynamic";
@@ -40,7 +40,7 @@ export async function GET(_req: Request, { params }: Params) {
       fresh.sections[0]?.sectionName ?? sectionCode,
       competitionCode,
     );
-    await upsertSectionCache(sectionCode, fresh);
+    await saveSectionResults(sectionCode, fresh);
 
     return NextResponse.json({
       status: "refreshed",

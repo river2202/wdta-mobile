@@ -20,3 +20,26 @@ CREATE TABLE IF NOT EXISTS section_cache (
   generated_at TIMESTAMPTZ NOT NULL,       -- timestamp from results.generatedAt
   refreshed_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+-- Per-player match appearances, derived from cached match rosters.
+-- Rewritten per section on each refresh (delete + batch insert).
+CREATE TABLE IF NOT EXISTS player_appearance (
+  player_key       TEXT NOT NULL,          -- normalized name (lowercase, single spaces)
+  player_label     TEXT NOT NULL,          -- display name
+  team             TEXT NOT NULL,
+  competition_code TEXT NOT NULL,
+  section_code     TEXT NOT NULL,
+  section_name     TEXT NOT NULL,
+  round            INT  NOT NULL,
+  match_date       TEXT,
+  match_id         TEXT NOT NULL,
+  opponent         TEXT NOT NULL,
+  position         TEXT NOT NULL DEFAULT '',
+  emergency        BOOLEAN NOT NULL DEFAULT FALSE,
+  team_points      REAL,                    -- points can be fractional (e.g. 1.5)
+  opp_points       REAL,
+  PRIMARY KEY (match_id, player_key, position)
+);
+
+CREATE INDEX IF NOT EXISTS player_appearance_key_idx     ON player_appearance (player_key);
+CREATE INDEX IF NOT EXISTS player_appearance_section_idx ON player_appearance (section_code);
