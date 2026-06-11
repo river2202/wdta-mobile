@@ -397,7 +397,9 @@ function MatchCard({
       {match.venueNote ? <p className="venue-note">{match.venueNote}</p> : null}
 
       <div className="stat-grid" aria-label="Match statistics">
-        <Stat label="R" home={match.home.rubbers} away={match.away.rubbers} />
+        {match.home.rubbers != null && match.away.rubbers != null ? (
+          <Stat label="R" home={match.home.rubbers} away={match.away.rubbers} />
+        ) : null}
         <Stat label="S" home={match.home.sets} away={match.away.sets} />
         <Stat label="G" home={match.home.games} away={match.away.games} />
       </div>

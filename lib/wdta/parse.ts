@@ -250,28 +250,45 @@ function parseMatchRow(
   $: cheerio.CheerioAPI,
   cells: AnyNode[],
 ): MatchResult | undefined {
+  // S/D Rubbers: team | P R S G | (gap) | P R S G | team  → 11 cells (4 score cols)
   if (cells.length >= 11) {
-    const homeCell = cells[0];
-    const awayCell = cells[10];
-    const homeInfo = parseTeamCell($, homeCell);
-    const awayInfo = parseTeamCell($, awayCell);
-    const home = parseTeamScore($, cells, 1);
-    const away = parseTeamScore($, cells, 6);
+    const played = parsePlayedRow($, cells, { homeStart: 1, awayStart: 6, awayTeam: 10, cols: 4 });
+    if (played) return played;
+  }
 
-    if (home && away && homeInfo.team && awayInfo.team) {
-      return {
-        matchId: parseMatchId($, homeCell),
-        status: "played",
-        homeTeam: homeInfo.team,
-        awayTeam: awayInfo.team,
-        venueNote: homeInfo.venueNote,
-        home,
-        away,
-      };
-    }
+  // Triples / Open Rubbers / Mid Week: team | P S G | (gap) | P S G | team  → 9 cells (3 score cols)
+  if (cells.length >= 9) {
+    const played = parsePlayedRow($, cells, { homeStart: 1, awayStart: 5, awayTeam: 8, cols: 3 });
+    if (played) return played;
   }
 
   return parseStatusRow($, cells);
+}
+
+function parsePlayedRow(
+  $: cheerio.CheerioAPI,
+  cells: AnyNode[],
+  layout: { homeStart: number; awayStart: number; awayTeam: number; cols: 3 | 4 },
+): MatchResult | undefined {
+  const homeCell = cells[0];
+  const homeInfo = parseTeamCell($, homeCell);
+  const awayInfo = parseTeamCell($, cells[layout.awayTeam]);
+  const home = parseTeamScore($, cells, layout.homeStart, layout.cols);
+  const away = parseTeamScore($, cells, layout.awayStart, layout.cols);
+
+  if (!home || !away || !homeInfo.team || !awayInfo.team) {
+    return undefined;
+  }
+
+  return {
+    matchId: parseMatchId($, homeCell),
+    status: "played",
+    homeTeam: homeInfo.team,
+    awayTeam: awayInfo.team,
+    venueNote: homeInfo.venueNote,
+    home,
+    away,
+  };
 }
 
 function parseStatusRow(
@@ -334,21 +351,20 @@ function parseTeamScore(
   $: cheerio.CheerioAPI,
   cells: AnyNode[],
   startIndex: number,
+  cols: 3 | 4,
 ): TeamScore | undefined {
   const values = cells
-    .slice(startIndex, startIndex + 4)
+    .slice(startIndex, startIndex + cols)
     .map((cell) => Number.parseFloat(cleanText($(cell).text())));
 
-  if (values.some((value) => Number.isNaN(value))) {
+  if (values.length < cols || values.some((value) => Number.isNaN(value))) {
     return undefined;
   }
 
-  return {
-    points: values[0],
-    rubbers: values[1],
-    sets: values[2],
-    games: values[3],
-  };
+  // 4 cols: Points, Rubbers, Sets, Games. 3 cols: Points, Sets, Games (no Rubbers).
+  return cols === 4
+    ? { points: values[0], rubbers: values[1], sets: values[2], games: values[3] }
+    : { points: values[0], sets: values[1], games: values[2] };
 }
 
 function parsePlayerTable($: cheerio.CheerioAPI, table: AnyNode): MatchPlayer[] {

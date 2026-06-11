@@ -2,7 +2,8 @@ export type MatchStatus = "played" | "bye" | "washout" | "forfeit" | "unknown";
 
 export type TeamScore = {
   points: number;
-  rubbers: number;
+  /** Absent for formats without a Rubbers column (Triples, Open Rubbers, Mid Week). */
+  rubbers?: number;
   sets: number;
   games: number;
 };
