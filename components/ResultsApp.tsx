@@ -1,17 +1,15 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
 import { useEffect, useState } from "react";
 
+import { MatchDetailBody } from "@/components/MatchDetail";
 import type {
   CachedResults,
   LadderEntry,
   MatchDetails,
-  MatchPlayer,
   MatchResult,
   RoundResult,
-  RubberDetail,
   SectionResults,
 } from "@/lib/wdta/types";
 
@@ -414,58 +412,8 @@ function MatchDetailPanel({
   return (
     <details className="match-detail" open={defaultOpen}>
       <summary>Match details</summary>
-      <div className="detail-body">
-        <div className="player-grid">
-          <PlayerList team={details.homeTeam} players={details.homePlayers} />
-          <PlayerList team={details.awayTeam} players={details.awayPlayers} align="right" />
-        </div>
-
-        <div className="rubber-list" aria-label="Rubber scores">
-          {details.rubbers.map((rubber, index) => (
-            <RubberRow key={`${rubber.homePosition}-${rubber.awayPosition}-${index}`} rubber={rubber} />
-          ))}
-        </div>
-      </div>
+      <MatchDetailBody details={details} />
     </details>
-  );
-}
-
-function PlayerList({
-  team,
-  players,
-  align = "left",
-}: {
-  team: string;
-  players: MatchPlayer[];
-  align?: "left" | "right";
-}) {
-  return (
-    <div className={`player-list ${align}`}>
-      <h3>{team}</h3>
-      <ol>
-        {players.map((player) => (
-          <li key={`${player.position}-${player.name}`}>
-            <span className="player-position">{player.position}</span>
-            <Link className="player-link" href={`/player/${encodeURIComponent(player.name)}`}>
-              {player.name}
-            </Link>
-            {player.emergency ? <span className="emergency-badge">E</span> : null}
-          </li>
-        ))}
-      </ol>
-    </div>
-  );
-}
-
-function RubberRow({ rubber }: { rubber: RubberDetail }) {
-  return (
-    <div className="rubber-row">
-      <span className="rubber-side">{rubber.homePosition}</span>
-      <strong className="rubber-score">
-        {rubber.scoreLines.length > 0 ? rubber.scoreLines.join("  ") : "-"}
-      </strong>
-      <span className="rubber-side right">{rubber.awayPosition}</span>
-    </div>
   );
 }
 

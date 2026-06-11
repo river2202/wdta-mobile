@@ -1,6 +1,15 @@
-import { getPlayerAppearances, type PlayerAppearanceDbRow } from "@/lib/db/queries";
+import {
+  getPlayerAppearances,
+  getSectionCache,
+  type PlayerAppearanceDbRow,
+} from "@/lib/db/queries";
 import { normalizePlayerKey } from "@/lib/wdta/appearances";
-import { PlayerProfile, type PlayerMatch, type PlayerTeam } from "@/components/PlayerProfile";
+import type { MatchDetails, MatchResult } from "@/lib/wdta/types";
+import {
+  PlayerProfile,
+  type PlayerMatch,
+  type PlayerTeamGroup,
+} from "@/components/PlayerProfile";
 
 export const dynamic = "force-dynamic";
 
@@ -19,53 +28,86 @@ export default async function PlayerPage({ params }: PageProps) {
   }
 
   const displayName = rows[0]?.player_label || decoded;
+  const matchDetails = await loadMatchDetails(rows);
+  const teamGroups = buildTeamGroups(rows, matchDetails);
+  const backHref = teamGroups[0]?.sectionCode
+    ? `/results?section=${encodeURIComponent(teamGroups[0].sectionCode)}`
+    : "/";
 
-  const matches: PlayerMatch[] = rows
-    .map((r) => ({
+  return (
+    <PlayerProfile name={displayName} teamGroups={teamGroups} backHref={backHref} highlightKey={key} />
+  );
+}
+
+/** Load the cached match results for the sections this player appears in, keyed by matchId. */
+async function loadMatchDetails(
+  rows: PlayerAppearanceDbRow[],
+): Promise<Map<string, MatchDetails>> {
+  const sectionCodes = [...new Set(rows.map((r) => r.section_code))];
+  const map = new Map<string, MatchDetails>();
+
+  await Promise.all(
+    sectionCodes.map(async (code) => {
+      try {
+        const cached = await getSectionCache(code);
+        if (!cached) return;
+        for (const section of cached.results_json.sections) {
+          for (const round of section.rounds) {
+            for (const match of round.matches as MatchResult[]) {
+              if (match.matchId && match.details) map.set(match.matchId, match.details);
+            }
+          }
+        }
+      } catch (error) {
+        console.error(`[player] failed to load section ${code}:`, error);
+      }
+    }),
+  );
+
+  return map;
+}
+
+function buildTeamGroups(
+  rows: PlayerAppearanceDbRow[],
+  matchDetails: Map<string, MatchDetails>,
+): PlayerTeamGroup[] {
+  const groups = new Map<string, PlayerTeamGroup & { _allEmergency: boolean }>();
+
+  for (const r of rows) {
+    const id = `${r.team}|${r.section_code}`;
+    let group = groups.get(id);
+    if (!group) {
+      group = {
+        team: r.team,
+        sectionName: r.section_name,
+        sectionCode: r.section_code,
+        emergencyOnly: r.emergency,
+        matches: [],
+        _allEmergency: r.emergency,
+      };
+      groups.set(id, group);
+    }
+    group._allEmergency = group._allEmergency && r.emergency;
+    group.matches.push({
       matchDate: r.match_date,
       round: r.round,
-      sectionName: r.section_name,
-      sectionCode: r.section_code,
-      team: r.team,
       opponent: r.opponent,
       teamPoints: r.team_points,
       oppPoints: r.opp_points,
       result: resultOf(r.team_points, r.opp_points),
       emergency: r.emergency,
       position: r.position,
-    }))
-    .sort((a, b) => sortKey(b) - sortKey(a));
-
-  const teams = aggregateTeams(rows);
-  const backHref = teams[0]?.sectionCode
-    ? `/results?section=${encodeURIComponent(teams[0].sectionCode)}`
-    : "/";
-
-  return <PlayerProfile name={displayName} teams={teams} matches={matches} backHref={backHref} />;
-}
-
-function aggregateTeams(rows: PlayerAppearanceDbRow[]): PlayerTeam[] {
-  const map = new Map<string, PlayerTeam & { _allEmergency: boolean }>();
-  for (const r of rows) {
-    const id = `${r.team}|${r.section_code}`;
-    const existing = map.get(id);
-    if (existing) {
-      existing.count += 1;
-      existing._allEmergency = existing._allEmergency && r.emergency;
-    } else {
-      map.set(id, {
-        team: r.team,
-        sectionName: r.section_name,
-        sectionCode: r.section_code,
-        count: 1,
-        emergencyOnly: r.emergency,
-        _allEmergency: r.emergency,
-      });
-    }
+      detail: matchDetails.get(r.match_id) ?? null,
+    });
   }
-  return [...map.values()]
-    .map(({ _allEmergency, ...t }) => ({ ...t, emergencyOnly: _allEmergency }))
-    .sort((a, b) => b.count - a.count);
+
+  return [...groups.values()]
+    .map(({ _allEmergency, ...g }) => ({
+      ...g,
+      emergencyOnly: _allEmergency,
+      matches: g.matches.sort((a, b) => sortKey(b) - sortKey(a)),
+    }))
+    .sort((a, b) => b.matches.length - a.matches.length);
 }
 
 function resultOf(team: number | null, opp: number | null): "win" | "loss" | "draw" | null {
@@ -77,10 +119,8 @@ function resultOf(team: number | null, opp: number | null): "win" | "loss" | "dr
 
 const MONTHS = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
 
-/** Sort key from "23 May 26" → epoch-ish; falls back to round for ties/missing. */
 function sortKey(m: PlayerMatch): number {
-  const parsed = parseMatchDate(m.matchDate);
-  return parsed ?? m.round;
+  return parseMatchDate(m.matchDate) ?? m.round;
 }
 
 function parseMatchDate(value: string | null): number | null {

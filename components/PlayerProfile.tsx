@@ -1,40 +1,41 @@
 import Link from "next/link";
 
-export type PlayerTeam = {
-  team: string;
-  sectionName: string;
-  sectionCode: string;
-  count: number;
-  /** True when every appearance for this team was as an emergency (a fill-in). */
-  emergencyOnly: boolean;
-};
+import { MatchDetailBody } from "@/components/MatchDetail";
+import type { MatchDetails } from "@/lib/wdta/types";
 
 export type PlayerMatch = {
   matchDate: string | null;
   round: number;
-  sectionName: string;
-  sectionCode: string;
-  team: string;
   opponent: string;
   teamPoints: number | null;
   oppPoints: number | null;
   result: "win" | "loss" | "draw" | null;
   emergency: boolean;
   position: string;
+  detail?: MatchDetails | null;
+};
+
+export type PlayerTeamGroup = {
+  team: string;
+  sectionName: string;
+  sectionCode: string;
+  /** True when every appearance for this team was as an emergency (a fill-in). */
+  emergencyOnly: boolean;
+  matches: PlayerMatch[];
 };
 
 export function PlayerProfile({
   name,
-  teams,
-  matches,
+  teamGroups,
   backHref,
+  highlightKey,
 }: {
   name: string;
-  teams: PlayerTeam[];
-  matches: PlayerMatch[];
+  teamGroups: PlayerTeamGroup[];
   backHref: string;
+  highlightKey?: string;
 }) {
-  const primaryTeam = teams[0];
+  const primaryTeam = teamGroups[0];
 
   return (
     <main className="page-shell">
@@ -47,7 +48,7 @@ export function PlayerProfile({
         {primaryTeam ? <p className="player-team-line">{primaryTeam.team}</p> : null}
       </header>
 
-      {teams.length === 0 ? (
+      {teamGroups.length === 0 ? (
         <section className="empty-state">
           <h2>No matches found yet</h2>
           <p>
@@ -56,60 +57,57 @@ export function PlayerProfile({
           </p>
         </section>
       ) : (
-        <>
-          <section className="player-block" aria-label="Teams">
-            <p className="panel-label">Team / club</p>
-            <div className="player-team-list">
-              {teams.map((t) => (
-                <div className="player-team-card" key={`${t.team}-${t.sectionCode}`}>
-                  <div className="player-team-main">
-                    <strong>{t.team}</strong>
-                    <span>{t.sectionName}</span>
-                  </div>
-                  <div className="player-team-meta">
-                    {t.emergencyOnly ? <span className="emergency-badge">E</span> : null}
-                    <span className="player-team-count">
-                      {t.count} {t.count === 1 ? "match" : "matches"}
-                    </span>
-                  </div>
+        <section className="player-block" aria-label="Teams and matches">
+          <p className="panel-label">Team / club</p>
+          {teamGroups.map((group, i) => (
+            <details
+              className="player-team-group"
+              key={`${group.team}-${group.sectionCode}`}
+              open={i === 0}
+            >
+              <summary className="player-team-summary collapse-summary">
+                <div className="player-team-main">
+                  <strong>{group.team}</strong>
+                  <span>{group.sectionName}</span>
                 </div>
-              ))}
-            </div>
-          </section>
+                <div className="player-team-meta">
+                  {group.emergencyOnly ? <span className="emergency-badge">E</span> : null}
+                  <span className="player-team-count">
+                    {group.matches.length} {group.matches.length === 1 ? "match" : "matches"}
+                  </span>
+                </div>
+              </summary>
 
-          <section className="player-block" aria-label="Match history">
-            <p className="panel-label">Match history</p>
-            <div className="player-match-list">
-              {matches.map((m, i) => (
-                <article className="player-match" key={`${m.sectionCode}-${m.round}-${i}`}>
-                  <div className="player-match-top">
-                    <span className="player-match-date">{m.matchDate ?? `Round ${m.round}`}</span>
-                    <span className="player-match-section">
-                      {m.sectionName} · Rd {m.round}
-                    </span>
-                    {m.result ? (
-                      <span className={`result-pill ${m.result}`}>
-                        {m.result === "win" ? "W" : m.result === "loss" ? "L" : "D"}
+              <div className="player-match-list">
+                {group.matches.map((m, mi) => (
+                  <details className="player-match" key={`${group.sectionCode}-${m.round}-${mi}`}>
+                    <summary className="player-match-summary collapse-summary">
+                      <span className="player-match-when">
+                        <span className="player-match-date">{m.matchDate ?? `Round ${m.round}`}</span>
+                        <span className="player-match-vs">vs {m.opponent}</span>
                       </span>
-                    ) : null}
-                  </div>
-                  <div className="player-match-body">
-                    <span className="player-match-team">
-                      {m.team}
-                      {m.emergency ? <span className="emergency-badge inline">E</span> : null}
-                    </span>
-                    <span className="player-match-score">
-                      {m.teamPoints != null && m.oppPoints != null
-                        ? `${m.teamPoints}-${m.oppPoints}`
-                        : "–"}
-                    </span>
-                    <span className="player-match-opp">{m.opponent}</span>
-                  </div>
-                </article>
-              ))}
-            </div>
-          </section>
-        </>
+                      {m.result ? (
+                        <span className={`result-pill ${m.result}`}>
+                          {m.result === "win" ? "W" : m.result === "loss" ? "L" : "D"}
+                        </span>
+                      ) : null}
+                      <span className="player-match-score">
+                        {m.teamPoints != null && m.oppPoints != null
+                          ? `${m.teamPoints}-${m.oppPoints}`
+                          : "–"}
+                      </span>
+                    </summary>
+                    {m.detail ? (
+                      <MatchDetailBody details={m.detail} highlightKey={highlightKey} />
+                    ) : (
+                      <p className="player-match-nodetail">Match detail not available.</p>
+                    )}
+                  </details>
+                ))}
+              </div>
+            </details>
+          ))}
+        </section>
       )}
     </main>
   );

@@ -1086,25 +1086,53 @@ h1 {
   margin-bottom: 18px;
 }
 
-.player-team-list {
-  display: grid;
-  gap: 8px;
-}
-
-.player-team-card {
+/* Shared collapsible summary with a +/- badge (reuses the Match details look). */
+.collapse-summary {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
+  gap: 8px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.collapse-summary::-webkit-details-marker {
+  display: none;
+}
+
+.collapse-summary::after {
+  content: "+";
+  display: grid;
+  width: 24px;
+  height: 24px;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 999px;
+  background: rgba(29, 111, 80, 0.1);
+  color: var(--accent-strong);
+  font-size: 0.95rem;
+  font-weight: 900;
+}
+
+details[open] > .collapse-summary::after {
+  content: "-";
+}
+
+/* Team group (collapsible) */
+.player-team-group {
   border: 1px solid rgba(216, 210, 196, 0.9);
   border-radius: 10px;
   background: var(--surface);
-  padding: 10px 12px;
+  overflow: hidden;
+}
+
+.player-team-summary {
+  padding: 12px;
 }
 
 .player-team-main {
   display: grid;
   gap: 2px;
+  flex: 1;
   min-width: 0;
 }
 
@@ -1131,24 +1159,29 @@ h1 {
   white-space: nowrap;
 }
 
+/* Match list within a team group */
 .player-match-list {
   display: grid;
   gap: 8px;
+  padding: 0 12px 12px;
 }
 
 .player-match {
-  display: grid;
-  gap: 6px;
-  border-radius: 10px;
+  border-radius: 8px;
   background: var(--surface-muted);
-  padding: 10px 12px;
+  overflow: hidden;
 }
 
-.player-match-top {
+.player-match-summary {
+  padding: 9px 10px;
+  font-size: 0.82rem;
+}
+
+.player-match-when {
   display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 0.8rem;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
 }
 
 .player-match-date {
@@ -1156,24 +1189,28 @@ h1 {
   color: var(--ink);
 }
 
-.player-match-section {
+.player-match-vs {
   color: var(--muted);
-  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
+.player-match-score {
+  flex: 0 0 auto;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+}
+
 .result-pill {
-  margin-left: auto;
   display: inline-grid;
   width: 22px;
   height: 22px;
+  flex: 0 0 auto;
   place-items: center;
   border-radius: 999px;
   font-size: 0.72rem;
   font-weight: 900;
-  flex: 0 0 auto;
 }
 
 .result-pill.win {
@@ -1191,41 +1228,19 @@ h1 {
   color: var(--muted);
 }
 
-.player-match-body {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
-  align-items: center;
-  gap: 8px;
+.player-match .detail-body {
+  padding: 2px 10px 10px;
 }
 
-.player-match-team {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-weight: 800;
-  min-width: 0;
-}
-
-.player-match-team,
-.player-match-opp {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.player-match-opp {
-  text-align: right;
+.player-match-nodetail {
+  padding: 0 10px 10px;
   color: var(--muted);
-  font-weight: 700;
+  font-size: 0.82rem;
 }
 
-.player-match-score {
+/* Emphasize the profile owner within a match roster. */
+.player-list li.is-highlight .player-link {
+  color: var(--ink);
   font-weight: 900;
-  font-variant-numeric: tabular-nums;
-}
-
-.emergency-badge.inline {
-  width: 16px;
-  height: 16px;
-  font-size: 0.6rem;
+  border-bottom-color: var(--accent);
 }
