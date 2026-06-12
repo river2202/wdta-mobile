@@ -1,8 +1,11 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+
+import { SiteFooter } from "@/components/SiteFooter";
 
 const SELECTED_SECTION_STORAGE_KEY = "wdta-mobile-section";
 const FILTER_HISTORY_STORAGE_KEY = "wdta-mobile-section-filters";
@@ -127,6 +130,9 @@ export function LandingPage({
           <h1 className="landing-title">WDTA Results</h1>
           <p className="landing-tagline">Mobile-friendly layout for your team</p>
         </div>
+        <Link className="our-story-link" href="/our-story">
+          Our Story
+        </Link>
       </header>
 
       {pickedPlayer ? (
@@ -303,6 +309,8 @@ export function LandingPage({
           </section>
         </>
       )}
+
+      <SiteFooter />
     </main>
   );
 }

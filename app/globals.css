@@ -893,7 +893,70 @@ h1 {
   line-height: 1.4;
 }
 
+.footer-story-link {
+  color: var(--accent-strong);
+  font-size: 0.88rem;
+  font-weight: 850;
+  text-decoration: none;
+  border-bottom: 1px dotted rgba(15, 84, 59, 0.45);
+}
+
+/* ─── Our Story page ────────────────────────────────────────────────────── */
+
+.story-shell {
+  display: grid;
+  gap: 22px;
+  max-width: 640px;
+}
+
+.story-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.story-block {
+  display: grid;
+  gap: 10px;
+}
+
+.story-block h2 {
+  font-size: 1.05rem;
+}
+
+.story-block p {
+  color: var(--ink);
+  font-size: 0.92rem;
+  line-height: 1.55;
+}
+
+.story-list {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 6px;
+  color: var(--ink);
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+.story-mail {
+  justify-self: start;
+  min-height: 44px;
+  display: inline-grid;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--accent-strong);
+  font-weight: 850;
+  padding: 8px 16px;
+  text-decoration: none;
+}
+
 .bmc-button {
+  justify-self: start;
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -917,13 +980,42 @@ h1 {
 /* ─── Landing page ──────────────────────────────────────────────────────── */
 
 .landing-shell {
-  display: grid;
-  align-content: start;
-  gap: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
   min-height: 100dvh;
   max-width: 480px;
   margin: 0 auto;
   padding: 0 0 48px;
+}
+
+/* Pin the footer to the bottom of the landing screen */
+.landing-shell .page-footer {
+  margin: 28px 16px 0;
+  margin-top: auto;
+}
+
+/* "Our Story" pill on the right of the landing header */
+.our-story-link {
+  margin-left: auto;
+  flex: 0 0 auto;
+  min-height: 32px;
+  display: inline-grid;
+  place-items: center;
+  padding: 5px 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--accent-strong);
+  font-size: 0.8rem;
+  font-weight: 800;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.our-story-link:active {
+  border-color: var(--accent);
+  background: rgba(29, 111, 80, 0.07);
 }
 
 /* Compact horizontal header — always visible */

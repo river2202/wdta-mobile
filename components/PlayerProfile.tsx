@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { MatchDetailBody } from "@/components/MatchDetail";
+import { SiteFooter } from "@/components/SiteFooter";
 import type { MatchDetails } from "@/lib/wdta/types";
 
 export type PlayerMatch = {
@@ -116,6 +117,8 @@ export function PlayerProfile({
           })}
         </section>
       )}
+
+      <SiteFooter />
     </main>
   );
 }

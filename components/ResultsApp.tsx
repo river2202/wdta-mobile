@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useEffect, useState } from "react";
 
 import { MatchDetailBody } from "@/components/MatchDetail";
+import { SiteFooter } from "@/components/SiteFooter";
 import type {
   CachedResults,
   LadderEntry,
@@ -19,9 +20,6 @@ const ORIGINAL_LADDERS_URL = "https://www.trols.org.au/wdta/ladders.php";
 const ORIGINAL_FIXTURE_URL = "https://www.trols.org.au/wdta/fixture.php";
 const SELECTED_SECTION_STORAGE_KEY = "wdta-mobile-section";
 const SEEN_RESULTS_STORAGE_KEY = "wdta-mobile-seen-results";
-// Set NEXT_PUBLIC_BUYMEACOFFEE_URL in your env / Vercel dashboard to your own page.
-// When it's unset, the donate buttons are hidden entirely.
-const BUY_ME_A_COFFEE_URL = process.env.NEXT_PUBLIC_BUYMEACOFFEE_URL;
 
 type RefreshResponse = {
   status: "refreshed" | "too-fresh" | "error";
@@ -185,18 +183,6 @@ export function ResultsApp({
             <a className="original-link" href={originalResultsUrl}>
               Original WDTA
             </a>
-            {BUY_ME_A_COFFEE_URL ? (
-              <a
-                className="bmc-icon"
-                href={BUY_ME_A_COFFEE_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="Buy me a coffee"
-                title="Buy me a coffee"
-              >
-                <CoffeeIcon />
-              </a>
-            ) : null}
           </div>
         </div>
         {isRefreshing ? (
@@ -232,20 +218,7 @@ export function ResultsApp({
         </section>
       )}
 
-      <footer className="page-footer">
-        {BUY_ME_A_COFFEE_URL ? (
-          <a
-            className="bmc-button"
-            href={BUY_ME_A_COFFEE_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <CoffeeIcon />
-            <span>Buy me a coffee</span>
-          </a>
-        ) : null}
-        <p className="footer-note">Made for tennis parents · not affiliated with WDTA/TROLS</p>
-      </footer>
+      <SiteFooter />
     </main>
   );
 }
@@ -509,28 +482,6 @@ function CalendarIcon() {
       <line x1="16" y1="2" x2="16" y2="6" />
       <line x1="8" y1="2" x2="8" y2="6" />
       <line x1="3" y1="10" x2="21" y2="10" />
-    </svg>
-  );
-}
-
-function CoffeeIcon() {
-  return (
-    <svg
-      width="20"
-      height="20"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <path d="M17 8h1a4 4 0 1 1 0 8h-1" />
-      <path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z" />
-      <line x1="6" y1="2" x2="6" y2="4" />
-      <line x1="10" y1="2" x2="10" y2="4" />
-      <line x1="14" y1="2" x2="14" y2="4" />
     </svg>
   );
 }
