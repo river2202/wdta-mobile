@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
@@ -6,6 +7,10 @@ import { getCompetitions, getSections } from "@/lib/db/queries";
 import { fetchCompetitionOptions, fetchSectionOptions } from "@/lib/wdta/fetch";
 import { upsertCompetition, upsertSection } from "@/lib/db/queries";
 import type { CompetitionOption, SectionOption } from "@/components/LandingPage";
+
+export const metadata: Metadata = {
+  alternates: { canonical: "/" },
+};
 
 const SECTION_COOKIE_NAME = "wdta-mobile-section";
 

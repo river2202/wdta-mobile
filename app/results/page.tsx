@@ -1,15 +1,38 @@
+import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { ResultsApp } from "@/components/ResultsApp";
 import { SectionLoader } from "@/components/SectionLoader";
-import { getSectionCache } from "@/lib/db/queries";
+import { getSection, getSectionCache } from "@/lib/db/queries";
 
 const SECTION_COOKIE_NAME = "wdta-mobile-section";
 
 type PageProps = {
   searchParams?: Promise<{ section?: string }>;
 };
+
+export async function generateMetadata({ searchParams }: PageProps): Promise<Metadata> {
+  const params = await searchParams;
+  const code = params?.section;
+  if (!code) {
+    return { title: "Results" };
+  }
+
+  let name = code;
+  try {
+    const section = await getSection(code);
+    if (section) name = section.name;
+  } catch {
+    // fall back to the raw code
+  }
+
+  return {
+    title: `${name} — results & ladder`,
+    description: `Latest ${name} results, ladder and match details in the WDTA (Waverley & District Tennis Association), updated daily.`,
+    alternates: { canonical: `/results?section=${encodeURIComponent(code)}` },
+  };
+}
 
 export default async function ResultsPage({ searchParams }: PageProps) {
   const params = await searchParams;

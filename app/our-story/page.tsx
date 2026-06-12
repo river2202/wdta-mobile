@@ -4,9 +4,10 @@ import Link from "next/link";
 import { CoffeeIcon } from "@/components/icons";
 
 export const metadata: Metadata = {
-  title: "Our Story · WDTA Results",
+  title: "Our Story",
   description:
-    "Why this mobile-friendly WDTA results site exists: a non-profit, parent-volunteer project.",
+    "Why this mobile-friendly results site for the Waverley & District Tennis Association (WDTA) exists: a non-profit, parent-volunteer project.",
+  alternates: { canonical: "/our-story" },
 };
 
 const BUY_ME_A_COFFEE_URL = process.env.NEXT_PUBLIC_BUYMEACOFFEE_URL;

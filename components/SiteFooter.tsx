@@ -8,7 +8,8 @@ export function SiteFooter() {
         Our Story
       </Link>
       <p className="footer-note">
-        A non-profit, parent-volunteer project · not affiliated with WDTA/TROLS
+        Unofficial results viewer for the Waverley &amp; District Tennis Association (WDTA)
+        <br />A non-profit, parent-volunteer project · not affiliated with WDTA/TROLS
       </p>
     </footer>
   );

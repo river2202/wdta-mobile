@@ -15,6 +15,16 @@ export const dynamic = "force-dynamic";
 
 type PageProps = { params: Promise<{ name: string }> };
 
+export async function generateMetadata({ params }: PageProps): Promise<import("next").Metadata> {
+  const { name } = await params;
+  const decoded = safeDecode(name);
+  return {
+    title: `${decoded} — player match history`,
+    description: `${decoded}'s teams, results and match history in the WDTA (Waverley & District Tennis Association).`,
+    alternates: { canonical: `/player/${encodeURIComponent(decoded)}` },
+  };
+}
+
 export default async function PlayerPage({ params }: PageProps) {
   const { name } = await params;
   const decoded = safeDecode(name);
