@@ -1551,3 +1551,270 @@ h1 {
   font-weight: 900;
   font-variant-numeric: tabular-nums;
 }
+
+/* Shared collapsible summary with a +/- badge (matches the Match details look). */
+.collapse-summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.collapse-summary::-webkit-details-marker {
+  display: none;
+}
+
+.collapse-summary::after {
+  content: "+";
+  display: grid;
+  width: 24px;
+  height: 24px;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 999px;
+  background: rgba(29, 111, 80, 0.1);
+  color: var(--accent-strong);
+  font-size: 0.95rem;
+  font-weight: 900;
+}
+
+details[open] > .collapse-summary::after {
+  content: "-";
+}
+
+/* ─── Team fixture page ─────────────────────────────────────────────────── */
+
+.team-shell {
+  display: grid;
+  gap: 16px;
+  max-width: 640px;
+}
+
+.team-sub {
+  color: var(--muted);
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.team-trols-link {
+  justify-self: start;
+  margin-top: 8px;
+  text-decoration: none;
+}
+
+.fixture-list {
+  display: grid;
+  gap: 8px;
+}
+
+.fixture-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-radius: 10px;
+  background: var(--surface);
+  border: 1px solid rgba(216, 210, 196, 0.9);
+  padding: 10px 12px;
+}
+
+.fixture-row.muted {
+  background: transparent;
+  border-style: dashed;
+  color: var(--muted);
+}
+
+.fixture-row.played {
+  display: block;
+  padding: 0;
+  overflow: hidden;
+}
+
+.fixture-played-summary {
+  padding: 10px 12px;
+}
+
+.fixture-row.played .detail-body {
+  padding: 2px 12px 12px;
+}
+
+.fixture-date {
+  flex: 0 0 74px;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.fixture-main {
+  flex: 1;
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 800;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fixture-row.muted .fixture-main {
+  font-weight: 700;
+}
+
+.fixture-tag {
+  flex: 0 0 auto;
+  color: var(--muted);
+  font-size: 0.74rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.fixture-score {
+  flex: 0 0 auto;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+}
+
+.ha-mini {
+  flex: 0 0 auto;
+  display: inline-grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  font-size: 0.62rem;
+  font-weight: 900;
+}
+
+.ha-mini.home {
+  background: rgba(29, 111, 80, 0.12);
+  color: var(--accent-strong);
+}
+
+.ha-mini.away {
+  background: rgba(37, 95, 145, 0.14);
+  color: var(--blue);
+}
+
+/* Upcoming match card */
+.upcoming-card {
+  display: grid;
+  gap: 6px;
+  border: 2px solid var(--accent);
+  border-radius: 12px;
+  background: var(--surface);
+  padding: 14px;
+  box-shadow: var(--shadow);
+}
+
+.upcoming-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.upcoming-tag {
+  color: var(--accent-strong);
+}
+
+.ha-badge {
+  display: inline-grid;
+  place-items: center;
+  min-width: 58px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.74rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.ha-badge.home {
+  background: rgba(29, 111, 80, 0.14);
+  color: var(--accent-strong);
+}
+
+.ha-badge.away {
+  background: rgba(37, 95, 145, 0.16);
+  color: var(--blue);
+}
+
+.upcoming-when {
+  color: var(--muted);
+  font-size: 0.85rem;
+  font-weight: 800;
+}
+
+.upcoming-vs {
+  font-size: 1.3rem;
+}
+
+/* Venue card (inside upcoming) */
+.venue-card {
+  display: grid;
+  gap: 3px;
+  margin-top: 8px;
+  border-radius: 10px;
+  background: var(--surface-muted);
+  padding: 12px;
+}
+
+.venue-name {
+  font-weight: 900;
+  font-size: 0.92rem;
+}
+
+.venue-melway {
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.venue-line {
+  color: var(--ink);
+  font-size: 0.88rem;
+  line-height: 1.4;
+}
+
+.venue-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.venue-phone {
+  display: inline-grid;
+  place-items: center;
+  min-height: 40px;
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--accent-strong);
+  font-size: 0.84rem;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.navigate-button {
+  display: inline-grid;
+  place-items: center;
+  min-height: 40px;
+  padding: 8px 16px;
+  border-radius: 10px;
+  background: var(--accent);
+  color: #ffffff;
+  font-size: 0.88rem;
+  font-weight: 900;
+  text-decoration: none;
+}
+
+.finals-block {
+  display: grid;
+  gap: 8px;
+  margin-top: 8px;
+}

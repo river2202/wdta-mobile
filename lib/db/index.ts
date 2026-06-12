@@ -75,6 +75,16 @@ export async function runMigrations() {
   await sql`ALTER TABLE player_appearance ALTER COLUMN team_points TYPE REAL`;
   await sql`ALTER TABLE player_appearance ALTER COLUMN opp_points TYPE REAL`;
 
+  await sql`
+    CREATE TABLE IF NOT EXISTS team_fixture_cache (
+      section_code TEXT NOT NULL,
+      team_code    TEXT NOT NULL,
+      data_json    JSONB NOT NULL,
+      refreshed_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      PRIMARY KEY (section_code, team_code)
+    )
+  `;
+
   await sql`CREATE INDEX IF NOT EXISTS player_appearance_key_idx ON player_appearance (player_key)`;
   await sql`CREATE INDEX IF NOT EXISTS player_appearance_section_idx ON player_appearance (section_code)`;
 }

@@ -43,3 +43,12 @@ CREATE TABLE IF NOT EXISTS player_appearance (
 
 CREATE INDEX IF NOT EXISTS player_appearance_key_idx     ON player_appearance (player_key);
 CREATE INDEX IF NOT EXISTS player_appearance_section_idx ON player_appearance (section_code);
+
+-- Per-team season fixture (venues + rounds + finals), parsed from fixture.php.
+CREATE TABLE IF NOT EXISTS team_fixture_cache (
+  section_code TEXT NOT NULL,
+  team_code    TEXT NOT NULL,
+  data_json    JSONB NOT NULL,              -- TeamFixtureData
+  refreshed_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (section_code, team_code)
+);

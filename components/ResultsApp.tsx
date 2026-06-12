@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import { MatchDetailBody } from "@/components/MatchDetail";
@@ -17,7 +18,6 @@ import type {
 const AUTO_REFRESH_AGE_MS = 2 * 60 * 60 * 1000; // auto-refresh when cache older than 2h
 const ORIGINAL_RESULTS_URL = "https://www.trols.org.au/wdta/results.php";
 const ORIGINAL_LADDERS_URL = "https://www.trols.org.au/wdta/ladders.php";
-const ORIGINAL_FIXTURE_URL = "https://www.trols.org.au/wdta/fixture.php";
 const SELECTED_SECTION_STORAGE_KEY = "wdta-mobile-section";
 const SEEN_RESULTS_STORAGE_KEY = "wdta-mobile-seen-results";
 
@@ -303,16 +303,14 @@ function LadderPanel({
               <strong>{entry.percentage.toFixed(2)}</strong>
             </div>
             {entry.teamCode ? (
-              <a
+              <Link
                 className="team-fixture-link"
-                href={buildFixtureUrl(competitionCode, section.sectionCode, entry.teamCode)}
-                target="_blank"
-                rel="noopener noreferrer"
+                href={`/team/${encodeURIComponent(section.sectionCode)}/${encodeURIComponent(entry.teamCode)}`}
                 aria-label={`Fixture for ${entry.team}`}
                 title="Fixture"
               >
                 <CalendarIcon />
-              </a>
+              </Link>
             ) : null}
           </div>
         ))}
@@ -504,15 +502,6 @@ function buildOriginalLadderUrl(competitionCode: string, sectionCode: string) {
   return url.toString();
 }
 
-function buildFixtureUrl(competitionCode: string, sectionCode: string, teamCode: string) {
-  const url = new URL(ORIGINAL_FIXTURE_URL);
-  url.searchParams.set("which", "2");
-  url.searchParams.set("style", "");
-  url.searchParams.set("daytime", competitionCode);
-  url.searchParams.set("section", sectionCode);
-  url.searchParams.set("team", teamCode);
-  return url.toString();
-}
 
 
 function rememberBrowserValue(key: string, value: string) {

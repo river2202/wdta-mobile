@@ -1,5 +1,6 @@
 import { query, sql } from "./index";
 import { extractAppearances, type PlayerAppearanceRow } from "@/lib/wdta/appearances";
+import type { TeamFixtureData } from "@/lib/wdta/teamFixture";
 import type { CachedResults } from "@/lib/wdta/types";
 
 // ---------------------------------------------------------------------------
@@ -288,4 +289,42 @@ export async function saveSectionResults(
 ): Promise<void> {
   await upsertSectionCache(sectionCode, results);
   await replaceSectionAppearances(sectionCode, extractAppearances(results));
+}
+
+// ---------------------------------------------------------------------------
+// Team fixture cache
+// ---------------------------------------------------------------------------
+
+export type TeamFixtureCacheRow = {
+  section_code: string;
+  team_code: string;
+  data_json: TeamFixtureData;
+  refreshed_at: string;
+};
+
+export async function getTeamFixtureCache(
+  sectionCode: string,
+  teamCode: string,
+): Promise<TeamFixtureCacheRow | null> {
+  const result = await sql<TeamFixtureCacheRow>`
+    SELECT section_code, team_code, data_json, refreshed_at
+    FROM team_fixture_cache
+    WHERE section_code = ${sectionCode} AND team_code = ${teamCode}
+    LIMIT 1
+  `;
+  return result.rows[0] ?? null;
+}
+
+export async function upsertTeamFixtureCache(
+  sectionCode: string,
+  teamCode: string,
+  data: TeamFixtureData,
+): Promise<void> {
+  await sql`
+    INSERT INTO team_fixture_cache (section_code, team_code, data_json, refreshed_at)
+    VALUES (${sectionCode}, ${teamCode}, ${JSON.stringify(data)}::jsonb, NOW())
+    ON CONFLICT (section_code, team_code) DO UPDATE SET
+      data_json = EXCLUDED.data_json,
+      refreshed_at = NOW()
+  `;
 }

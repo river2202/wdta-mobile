@@ -10,6 +10,7 @@ import {
   parseSectionOptions,
   parseSectionResults,
 } from "./parse";
+import { parseTeamFixturePage, type TeamFixtureData } from "./teamFixture";
 import type { CachedResults, MatchResult, SectionResults } from "./types";
 
 export const SOURCE_URL = "https://www.trols.org.au/wdta/results.php";
@@ -130,6 +131,34 @@ export async function fetchSingleSectionResults(
     },
     sections: [sectionResults],
   };
+}
+
+/**
+ * Fetch and parse a team's full-season fixture page (venues + rounds + finals).
+ */
+export async function fetchTeamFixture(
+  competitionCode: string,
+  sectionCode: string,
+  teamCode: string,
+): Promise<TeamFixtureData> {
+  const url = new URL(FIXTURE_URL);
+  url.searchParams.set("which", "2");
+  url.searchParams.set("style", "");
+  url.searchParams.set("daytime", competitionCode);
+  url.searchParams.set("section", sectionCode);
+  url.searchParams.set("team", teamCode);
+  const response = await fetchWithTimeout(url, {
+    headers: REQUEST_HEADERS,
+    cache: "no-store",
+  });
+
+  if (!response.ok) {
+    throw new Error(
+      `WDTA team fixture request failed for ${teamCode} with ${response.status} ${response.statusText}`,
+    );
+  }
+
+  return parseTeamFixturePage(await response.text());
 }
 
 /**
