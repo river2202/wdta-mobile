@@ -31,10 +31,21 @@ WDTA Mobile
 - 点击球员进入球员的比赛历史信息
     - 进入球员信息页面，再点击对手，显示跟这个对手的比赛历史记录 - todo
 - 后台每天自动刷新，或者家长访问触发刷新
+- Section / team 页面
+    - 设置为home team 功能 - todo
+        - 设置当前team为自己的home team，本地保存，缓存，以后每次进来默认到这个页面
+- 导航的层级关系捋一下 - todo
+    - landing - 选择时间和section
+    - result 
+        - ladder 
+            - team fixture
+                - team round result
+        - round result
+            - player
 
 ## more feature
 - 在results页面顶部 有current ladder，显示每个team，点击日程会进入到这个team的fixture/日程里，现在要开发一个team fixture的页面，来替代原来的这个页面。这个页面最顶部显示 team，club名，所在competition和section，以及从所有的比赛的日程，按日程顺序往下排，已经打过的比赛显示结果，并且默认折叠，未打的显示TBD，最近一个显示upcoming，并显示Home还是Away，如果是Away，显示away team的地址，联系电话，和导航按钮（点击后自动导航到club地址）。同时，显示WDTA网站的原始链接备用。
-打开页面自动定位到下一个比赛的信息
+打开页面自动定位到下一个比赛的信息 - done
 
 - 定制你的页面，当用户输入他的小孩或者俱乐部信息，我们的页面就可以为了这个俱乐部定制，高亮他们的比赛结果等
 - 加入天气预报，提前两天/一天发送，给出washout的chance和目标目标俱乐部联系电话
