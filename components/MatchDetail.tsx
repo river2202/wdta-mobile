@@ -35,11 +35,13 @@ export function MatchDetailBody({
               : me.side === "away" && positionInCode(rubber.awayPosition, me.position)
                 ? "away"
                 : null;
+          const outcome = mineSide ? rubberOutcome(rubber.scoreLines, mineSide) : null;
           return (
             <RubberRow
               key={`${rubber.homePosition}-${rubber.awayPosition}-${index}`}
               rubber={rubber}
               highlightSide={mineSide}
+              outcome={outcome}
             />
           );
         })}
@@ -67,6 +69,26 @@ function positionInCode(code: string, position: string): boolean {
   return tokens ? tokens.includes(position) : false;
 }
 
+/**
+ * Decide whether `side` won a rubber from its set scores (home perspective,
+ * e.g. "6-1 6-1"). Tiebreak details in parentheses are ignored. Returns null
+ * when the winner can't be determined (no scores, forfeit text, even sets).
+ */
+function rubberOutcome(scoreLines: string[], side: "home" | "away"): "win" | "loss" | null {
+  const text = scoreLines.join(" ").replace(/\([^)]*\)/g, "");
+  let homeSets = 0;
+  let awaySets = 0;
+  for (const set of text.matchAll(/(\d+)\s*-\s*(\d+)/g)) {
+    const home = Number.parseInt(set[1], 10);
+    const away = Number.parseInt(set[2], 10);
+    if (home > away) homeSets++;
+    else if (away > home) awaySets++;
+  }
+  if (homeSets === awaySets) return null;
+  const winner = homeSets > awaySets ? "home" : "away";
+  return side === winner ? "win" : "loss";
+}
+
 export function PlayerList({
   team,
   players,
@@ -84,16 +106,34 @@ export function PlayerList({
       <ol>
         {players.map((player) => {
           const isHighlight = Boolean(highlightKey) && normalizePlayerKey(player.name) === highlightKey;
+          const positionBadge = <span className="player-position">{player.position}</span>;
+          const emergencyBadge = player.emergency ? (
+            <span className="emergency-badge">E</span>
+          ) : null;
+          const nameLink = (
+            <Link className="player-link" href={`/player/${encodeURIComponent(player.name)}`}>
+              {player.name}
+            </Link>
+          );
           return (
             <li
               key={`${player.position}-${player.name}`}
               className={isHighlight ? "is-highlight" : undefined}
             >
-              <span className="player-position">{player.position}</span>
-              <Link className="player-link" href={`/player/${encodeURIComponent(player.name)}`}>
-                {player.name}
-              </Link>
-              {player.emergency ? <span className="emergency-badge">E</span> : null}
+              {align === "right" ? (
+                // Mirror layout: number on the outer (right) edge.
+                <>
+                  {emergencyBadge}
+                  {nameLink}
+                  {positionBadge}
+                </>
+              ) : (
+                <>
+                  {positionBadge}
+                  {nameLink}
+                  {emergencyBadge}
+                </>
+              )}
             </li>
           );
         })}
@@ -105,19 +145,38 @@ export function PlayerList({
 function RubberRow({
   rubber,
   highlightSide,
+  outcome,
 }: {
   rubber: RubberDetail;
   highlightSide?: "home" | "away" | null;
+  outcome?: "win" | "loss" | null;
 }) {
+  const rowClass = [
+    "rubber-row",
+    highlightSide ? "rubber-row--mine" : "",
+    highlightSide && outcome === "loss" ? "is-loss" : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  const badge =
+    highlightSide && outcome ? (
+      <span className={`rubber-outcome ${outcome}`} aria-label={outcome === "win" ? "Won" : "Lost"}>
+        {outcome === "win" ? "W" : "L"}
+      </span>
+    ) : null;
+
   return (
-    <div className={`rubber-row${highlightSide ? " rubber-row--mine" : ""}`}>
+    <div className={rowClass}>
       <span className={`rubber-side${highlightSide === "home" ? " mine" : ""}`}>
         {rubber.homePosition}
+        {highlightSide === "home" ? badge : null}
       </span>
       <strong className="rubber-score">
         {rubber.scoreLines.length > 0 ? rubber.scoreLines.join("  ") : "-"}
       </strong>
       <span className={`rubber-side right${highlightSide === "away" ? " mine" : ""}`}>
+        {highlightSide === "away" ? badge : null}
         {rubber.awayPosition}
       </span>
     </div>

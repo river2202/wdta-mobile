@@ -560,7 +560,8 @@ h1 {
 
 .player-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  /* minmax(0, …) lets each column shrink so long names can ellipsize. */
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 12px;
 }
 
@@ -580,6 +581,9 @@ h1 {
   font-size: 0.78rem;
   font-weight: 850;
   line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .player-list ol {
@@ -640,13 +644,16 @@ h1 {
 }
 
 .rubber-side {
+  display: flex;
+  align-items: center;
+  gap: 5px;
   color: var(--muted);
   font-size: 0.78rem;
   font-weight: 850;
 }
 
 .rubber-side.right {
-  text-align: right;
+  justify-content: flex-end;
 }
 
 /* Rubbers the highlighted player took part in (player page only). */
@@ -655,9 +662,41 @@ h1 {
   box-shadow: inset 0 0 0 1px rgba(29, 111, 80, 0.35);
 }
 
+/* Rubbers the player lost get the loss tint instead. */
+.rubber-row--mine.is-loss {
+  background: rgba(166, 61, 53, 0.1);
+  box-shadow: inset 0 0 0 1px rgba(166, 61, 53, 0.35);
+}
+
 .rubber-side.mine {
   color: var(--accent-strong);
   font-weight: 900;
+}
+
+.rubber-row--mine.is-loss .rubber-side.mine {
+  color: var(--red);
+}
+
+/* Small W/L badge next to the player's position code. */
+.rubber-outcome {
+  display: inline-grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  font-size: 0.6rem;
+  font-weight: 900;
+}
+
+.rubber-outcome.win {
+  background: var(--accent);
+  color: #ffffff;
+}
+
+.rubber-outcome.loss {
+  background: var(--red);
+  color: #ffffff;
 }
 
 .rubber-score {
@@ -817,16 +856,6 @@ h1 {
   .team-fixture-link {
     grid-column: 2 / -1;
     width: 100%;
-  }
-
-  .player-grid {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .player-list.right,
-  .player-list.right li {
-    text-align: left;
-    justify-content: flex-start;
   }
 
   .status-row {
