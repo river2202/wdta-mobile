@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 const SELECTED_SECTION_STORAGE_KEY = "wdta-mobile-section";
+const FILTER_HISTORY_STORAGE_KEY = "wdta-mobile-section-filters";
+const FILTER_HISTORY_MAX = 5;
 
 export type CompetitionOption = { code: string; name: string };
 export type SectionOption = { code: string; name: string; competitionCode: string };
@@ -24,6 +26,8 @@ export function LandingPage({
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<PlayerSearchResult[]>([]);
   const [pickedPlayer, setPickedPlayer] = useState<PlayerSearchResult | null>(null);
+  const [sectionFilter, setSectionFilter] = useState("");
+  const [recentFilters, setRecentFilters] = useState<string[]>([]);
 
   // On mount: if a section was previously saved, go directly to results
   useEffect(() => {
@@ -36,6 +40,14 @@ export function LandingPage({
       // localStorage not available — cookie fallback handled server-side
     }
   }, [router]);
+
+  // Load the saved section-filter history (deferred to avoid sync setState in effect)
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      setRecentFilters(readFilterHistory());
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, []);
 
   // Debounced player-name search
   useEffect(() => {
@@ -73,8 +85,39 @@ export function LandingPage({
     }
   }
 
+  /** Save a useful filter term to the local history (most recent first, deduped). */
+  function rememberFilter(term: string) {
+    const trimmed = term.trim();
+    if (!trimmed) return;
+    const next = [
+      trimmed,
+      ...recentFilters.filter((t) => t.toLowerCase() !== trimmed.toLowerCase()),
+    ].slice(0, FILTER_HISTORY_MAX);
+    setRecentFilters(next);
+    try {
+      window.localStorage?.setItem(FILTER_HISTORY_STORAGE_KEY, JSON.stringify(next));
+    } catch {
+      // ignore
+    }
+  }
+
+  /** Remove a term from the filter history. */
+  function removeFilter(term: string) {
+    const next = recentFilters.filter((t) => t !== term);
+    setRecentFilters(next);
+    try {
+      window.localStorage?.setItem(FILTER_HISTORY_STORAGE_KEY, JSON.stringify(next));
+    } catch {
+      // ignore
+    }
+  }
+
   const selectedComp = competitions.find((c) => c.code === pickedComp);
-  const filteredSections = sections.filter((s) => s.competitionCode === pickedComp);
+  const compSections = sections.filter((s) => s.competitionCode === pickedComp);
+  const filterTerm = sectionFilter.trim().toLowerCase();
+  const filteredSections = filterTerm
+    ? compSections.filter((s) => s.name.toLowerCase().includes(filterTerm))
+    : compSections;
 
   return (
     <main className="landing-shell">
@@ -116,15 +159,68 @@ export function LandingPage({
       ) : pickedComp ? (
         // ── Screen: a competition's sections ───────────────────────────────
         <>
-          <button className="comp-band" type="button" onClick={() => setPickedComp(null)}>
+          <button
+            className="comp-band"
+            type="button"
+            onClick={() => {
+              setPickedComp(null);
+              setSectionFilter("");
+            }}
+          >
             <span className="comp-band-arrow">‹</span>
             <span className="comp-band-name">{selectedComp?.name}</span>
           </button>
           <section className="option-section">
             <p className="landing-prompt">Select your section</p>
+            <div className="filter-input-wrap">
+              <input
+                className="search-input"
+                type="text"
+                autoComplete="off"
+                placeholder="Filter sections"
+                value={sectionFilter}
+                onChange={(e) => setSectionFilter(e.target.value)}
+                aria-label="Filter sections"
+              />
+              {sectionFilter ? (
+                <button
+                  className="filter-clear"
+                  type="button"
+                  aria-label="Clear filter"
+                  onClick={() => setSectionFilter("")}
+                >
+                  ×
+                </button>
+              ) : null}
+            </div>
+            {recentFilters.length > 0 ? (
+              <div className="filter-history" aria-label="Recent filters">
+                {recentFilters.map((term) => (
+                  <span key={term} className="filter-chip">
+                    <button
+                      className="filter-chip-term"
+                      type="button"
+                      onClick={() => setSectionFilter(term)}
+                    >
+                      {term}
+                    </button>
+                    <button
+                      className="filter-chip-remove"
+                      type="button"
+                      aria-label={`Remove ${term}`}
+                      onClick={() => removeFilter(term)}
+                    >
+                      ×
+                    </button>
+                  </span>
+                ))}
+              </div>
+            ) : null}
             <div className="option-list">
-              {filteredSections.length === 0 ? (
+              {compSections.length === 0 ? (
                 <p className="option-empty">No sections available yet — try again shortly.</p>
+              ) : filteredSections.length === 0 ? (
+                <p className="option-empty">No sections match &quot;{sectionFilter.trim()}&quot;</p>
               ) : (
                 filteredSections.map((s, i) => (
                   <button
@@ -132,7 +228,10 @@ export function LandingPage({
                     className="option-card option-card--fly-in"
                     type="button"
                     style={{ animationDelay: `${i * 55}ms` }}
-                    onClick={() => pickSection(s.code)}
+                    onClick={() => {
+                      rememberFilter(sectionFilter);
+                      pickSection(s.code);
+                    }}
                   >
                     <span className="option-card-name">{s.name}</span>
                     <span className="option-card-arrow">›</span>
@@ -191,7 +290,10 @@ export function LandingPage({
                   key={c.code}
                   className="option-card"
                   type="button"
-                  onClick={() => setPickedComp(c.code)}
+                  onClick={() => {
+                    setSectionFilter("");
+                    setPickedComp(c.code);
+                  }}
                 >
                   <span className="option-card-name">{c.name}</span>
                   <span className="option-card-arrow">›</span>
@@ -211,6 +313,18 @@ function playerSub(player: PlayerSearchResult): string {
     return `${s.team} · ${s.sectionName}`;
   }
   return `${player.sections.length} teams / sections`;
+}
+
+function readFilterHistory(): string[] {
+  try {
+    const raw = window.localStorage?.getItem(FILTER_HISTORY_STORAGE_KEY);
+    if (!raw) return [];
+    const parsed: unknown = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter((t): t is string => typeof t === "string").slice(0, FILTER_HISTORY_MAX);
+  } catch {
+    return [];
+  }
 }
 
 function rememberSection(sectionCode: string) {
