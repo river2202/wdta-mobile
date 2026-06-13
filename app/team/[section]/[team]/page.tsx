@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 
+import { CachedTeam } from "@/components/cache-fallbacks";
 import { TeamFixture } from "@/components/TeamFixture";
 import { TeamFixtureLoader } from "@/components/TeamFixtureLoader";
 import {
@@ -44,6 +46,16 @@ function isCacheFresh(refreshedAt: string): boolean {
 export default async function TeamPage({ params }: PageProps) {
   const { section: sectionCode, team: teamCode } = await params;
 
+  // Cache-first: the fallback paints the cached fixture from localStorage
+  // instantly on a client-side navigation while the DB reads below stream in.
+  return (
+    <Suspense fallback={<CachedTeam sectionCode={sectionCode} teamCode={teamCode} />}>
+      <TeamData sectionCode={sectionCode} teamCode={teamCode} />
+    </Suspense>
+  );
+}
+
+async function TeamData({ sectionCode, teamCode }: { sectionCode: string; teamCode: string }) {
   // Read-only DB lookups; any TROLS fetching happens via the API route.
   let competitionCode = deriveCompetitionCode(sectionCode);
   let resultRounds: RoundResult[] = [];

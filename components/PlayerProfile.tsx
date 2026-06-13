@@ -1,7 +1,9 @@
-import Link from "next/link";
+"use client";
 
+import { BackLink } from "@/components/BackLink";
 import { MatchDetailBody } from "@/components/MatchDetail";
 import { SiteFooter } from "@/components/SiteFooter";
+import { cacheKeys, useWriteCache } from "@/lib/clientCache";
 import type { MatchDetails } from "@/lib/wdta/types";
 
 export type PlayerMatch = {
@@ -25,25 +27,27 @@ export type PlayerTeamGroup = {
   matches: PlayerMatch[];
 };
 
-export function PlayerProfile({
-  name,
-  teamGroups,
-  backHref,
-  highlightKey,
-}: {
+export type PlayerProfileProps = {
   name: string;
   teamGroups: PlayerTeamGroup[];
   backHref: string;
   highlightKey?: string;
-}) {
+};
+
+export function PlayerProfile({ name, teamGroups, backHref, highlightKey }: PlayerProfileProps) {
   const primaryTeam = teamGroups[0];
+
+  // Cache the rendered profile so a later visit / back-navigation can paint it
+  // instantly. Skip empty profiles so we never cache a "no matches" placeholder.
+  useWriteCache(
+    highlightKey && teamGroups.length > 0 ? cacheKeys.player(highlightKey) : "",
+    { name, teamGroups, backHref, highlightKey },
+  );
 
   return (
     <main className="page-shell">
       <header className="player-header">
-        <Link className="player-back" href={backHref} aria-label="Back to results">
-          ‹ Back
-        </Link>
+        <BackLink fallbackHref={backHref} />
         <p className="eyebrow">Player</p>
         <h1>{name}</h1>
         {primaryTeam ? <p className="player-team-line">{primaryTeam.team}</p> : null}

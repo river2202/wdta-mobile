@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 
 import { MatchDetailBody } from "@/components/MatchDetail";
 import { SiteFooter } from "@/components/SiteFooter";
+import { cacheKeys, useWriteCache } from "@/lib/clientCache";
 import type {
   CachedResults,
   LadderEntry,
@@ -49,6 +50,11 @@ export function ResultsApp({
   );
   const [newResultsNotice, setNewResultsNotice] = useState<NewResultsNotice | null>(null);
   const currentResultsStamp = getResultsUpdateStamp(results);
+
+  // Cache the latest results locally so the next visit / back-navigation can
+  // paint instantly. Only the "real" instance (with a sectionCode) writes;
+  // the cache-fallback instance is render-only.
+  useWriteCache(sectionCode ? cacheKeys.results(sectionCode) : "", results);
 
   // Auto-refresh: when the page opens, if the cache is older than 2 hours,
   // silently refresh the database in the background and update the view.

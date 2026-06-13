@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 
+import { BackLink } from "@/components/BackLink";
 import { CoffeeIcon } from "@/components/icons";
 
 export const metadata: Metadata = {
@@ -17,9 +17,7 @@ export default function OurStoryPage() {
   return (
     <main className="page-shell story-shell">
       <header className="player-header">
-        <Link className="player-back" href="/" aria-label="Back to home">
-          ‹ Back
-        </Link>
+        <BackLink fallbackHref="/" />
         <p className="eyebrow">Our Story</p>
         <div className="story-title-row">
           <h1>Built by a parent, for parents</h1>

@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { Suspense } from "react";
 
+import { CachedResults } from "@/components/cache-fallbacks";
 import { ResultsApp } from "@/components/ResultsApp";
 import { SectionLoader } from "@/components/SectionLoader";
 import { getSection, getSectionCache } from "@/lib/db/queries";
@@ -43,6 +45,17 @@ export default async function ResultsPage({ searchParams }: PageProps) {
     redirect("/");
   }
 
+  // Cache-first: on a client-side navigation the fallback paints the section's
+  // cached results from localStorage instantly while the DB read below streams
+  // in and replaces it (stale-while-revalidate).
+  return (
+    <Suspense fallback={<CachedResults sectionCode={sectionCode} />}>
+      <ResultsData sectionCode={sectionCode} />
+    </Suspense>
+  );
+}
+
+async function ResultsData({ sectionCode }: { sectionCode: string }) {
   // Read-only DB lookup — never fetch from TROLS during render (that work is
   // done by the cron and the on-demand API route, so the page can't time out).
   let cached;

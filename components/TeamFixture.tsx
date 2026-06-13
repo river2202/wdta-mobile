@@ -1,14 +1,23 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect } from "react";
 
+import { BackLink } from "@/components/BackLink";
 import { MatchDetailBody } from "@/components/MatchDetail";
 import { SiteFooter } from "@/components/SiteFooter";
+import { cacheKeys, useWriteCache } from "@/lib/clientCache";
 import type { FixtureRound, TeamFixtureData, VenueInfo } from "@/lib/wdta/teamFixture";
 import type { MatchResult, RoundResult } from "@/lib/wdta/types";
 
 const ORIGINAL_FIXTURE_URL = "https://www.trols.org.au/wdta/fixture.php";
+
+export type TeamFixtureProps = {
+  fixture: TeamFixtureData;
+  sectionCode: string;
+  teamCode: string;
+  competitionCode: string;
+  resultRounds: RoundResult[];
+};
 
 export function TeamFixture({
   fixture,
@@ -16,16 +25,19 @@ export function TeamFixture({
   teamCode,
   competitionCode,
   resultRounds,
-}: {
-  fixture: TeamFixtureData;
-  sectionCode: string;
-  teamCode: string;
-  competitionCode: string;
-  resultRounds: RoundResult[];
-}) {
+}: TeamFixtureProps) {
   const team = fixture.teamName;
   const ownVenue = findVenue(fixture.venues, team);
   const upcomingIndex = findUpcomingIndex(fixture.rounds);
+
+  // Cache the rendered fixture so the next visit / back-navigation paints instantly.
+  useWriteCache(cacheKeys.team(sectionCode, teamCode), {
+    fixture,
+    sectionCode,
+    teamCode,
+    competitionCode,
+    resultRounds,
+  });
 
   // Land the reader on their next match.
   useEffect(() => {
@@ -40,13 +52,7 @@ export function TeamFixture({
   return (
     <main className="page-shell team-shell">
       <header className="player-header">
-        <Link
-          className="player-back"
-          href={`/results?section=${encodeURIComponent(sectionCode)}`}
-          aria-label="Back to results"
-        >
-          ‹ Back
-        </Link>
+        <BackLink fallbackHref={`/results?section=${encodeURIComponent(sectionCode)}`} />
         <p className="eyebrow">{fixture.competitionName ?? competitionCode}</p>
         <h1>{team}</h1>
         <p className="team-sub">

@@ -1,3 +1,6 @@
+import { Suspense } from "react";
+
+import { CachedPlayer } from "@/components/cache-fallbacks";
 import {
   getPlayerAppearances,
   getSectionCache,
@@ -27,7 +30,18 @@ export async function generateMetadata({ params }: PageProps): Promise<import("n
 
 export default async function PlayerPage({ params }: PageProps) {
   const { name } = await params;
-  const decoded = safeDecode(name);
+
+  // Cache-first: the fallback paints the cached profile from localStorage
+  // instantly on a client-side navigation while the DB reads below stream in.
+  return (
+    <Suspense fallback={<CachedPlayer nameParam={name} />}>
+      <PlayerData nameParam={name} />
+    </Suspense>
+  );
+}
+
+async function PlayerData({ nameParam }: { nameParam: string }) {
+  const decoded = safeDecode(nameParam);
   const key = normalizePlayerKey(decoded);
 
   let rows: PlayerAppearanceDbRow[] = [];
